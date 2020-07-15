@@ -1,7 +1,7 @@
 from graderx import app
 import pytest
 from graderx.graders import manager
-
+from graderx import views
 
 @pytest.fixture
 def client():
@@ -20,6 +20,14 @@ def test_receives_courses_list(monkeypatch, client):
     assert rv.json['courses'] == ["course1", "course2", "course3"]
 
 
+def test_receives_available_labs( client):
+    """
+    Test if the client receives the currently available labs
+    """
+    rv = client.get('/labs/cc451')
+    assert rv.json['labs'] == views.available_labs
+
+@pytest.mark.skip(reason="functionality removed for being useless temporarily")
 def test_receives_labs_of_course(monkeypatch, client):
     """
     Test if the client receives the available to labs of a chosen course
@@ -33,6 +41,7 @@ def test_receives_labs_of_course(monkeypatch, client):
     assert rv.json['labs'] == ['lab1', 'lab2', 'lab3']
 
 
+@pytest.mark.skip(reason="functionality removed for being useless temporarily")
 def test_receives_400_if_empty_course(monkeypatch, client):
     """
     Test if the client receives a 400 response with the expected message 
@@ -49,6 +58,7 @@ def test_receives_400_if_empty_course(monkeypatch, client):
     assert rv.status_code == 400 and rv.json['msg'] == "The requested course has no labs"
 
 
+@pytest.mark.skip(reason="functionality removed for being useless temporarily")
 def test_receives_404_if_course_not_exist(monkeypatch, client):
     def mock_get_lab_ids(course_id):
         raise FileNotFoundError

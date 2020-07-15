@@ -1,19 +1,24 @@
 from werkzeug.datastructures import FileStorage
 from pathlib import Path
+import shlex
+import subprocess
 
 
-def get_lab_ids(course_code: str) -> list:
-    """
-    Returns a list of lab names of the given course
-    """
-    # gets the path of the parent of the current file 
-    # and appends '/courses/{course_code}/labs' to it
-    p = Path(__file__).parent / 'courses' / course_code / 'labs'
-    ids = [x.name for x in p.iterdir() if x.is_dir()]
-    if not ids:
-        raise EmptyCourseError("The requested course has no labs")
-    return ids
-
+def get_results(course_code: str, lab_id: str) -> dict:
+    curr_dir = str(Path(__file__).parent.resolve())
+    print(curr_dir)
+    cmd = shlex.split(f"pytest -vv --tb=short --show-capture=no {curr_dir}/courses/{course_code}/app/{lab_id}/test_run_grader.py")
+    file_name = "output.txt"
+    with open(file_name, "w+") as f:
+        subprocess.run(cmd, stdout=f)
+    parser_file = "parser_output"
+    with open(file_name, "r") as fi:
+        with open(parser_file, "w+") as fo:
+            cmd = shlex.split(f"python {curr_dir}/courses/cc451/app/lib/console_log_parser.py 1_client")
+            subprocess.run(cmd, stdin=fi, stdout=fo)
+    # TODO-TICKET-139:should return the results file
+    return "GRADED"
+    
 
 def get_courses() -> list:
     """
