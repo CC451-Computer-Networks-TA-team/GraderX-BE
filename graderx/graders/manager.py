@@ -18,7 +18,7 @@ def clean_directory(dir):
         else:
             f.unlink()
 
-def file_extract(file_path, verbosity=1):
+def extract_file(file_path, verbosity=1):
     patoolib.extract_archive(file_path, outdir=file_path.parent, verbosity=verbosity)
     os.remove(file_path)
     return True
@@ -48,7 +48,7 @@ def extract_submissions(dest_directory: Path, submissions_file: FileStorage,  ve
 
     file_path = dest_directory.joinpath(file_name)
     # check if exists
-    status = [file_extract(file_path), True][os.path.exists(file_path)]
+    status = [extract_file(file_path), False][os.path.exists(file_path)]
     return status
 
 
