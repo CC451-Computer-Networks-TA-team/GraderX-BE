@@ -2,9 +2,44 @@ from werkzeug.datastructures import FileStorage
 from pathlib import Path
 import shlex
 import subprocess
+import os
+## dependencies for docker
+import patoolib
+# pip install patool
 
-def extract_submissions(dest_directory: Path, submissions_file: FileStorage):
-    pass
+def file_extract(file_path, verbosity=1):
+    patoolib.extract_archive(file_path, verbosity=verbosity)
+    os.remove(file_path)
+    return True
+
+def extract_submissions(dest_directory: Path, submissions_file: FileStorage,  verbosity= 0):
+    """
+    Args:
+    dest_directory: Path. Submission directory found in [lab_name]/config.py
+    submissions_file: FileStorage. It is used by the request object to represent uploaded files. 
+ 
+    Returns: bool
+    status: True on sucessful extraction
+
+    Actions:
+    extracts the submissions file in the destenation directory and removes the rar (or Whatever) file
+
+    """
+    EXTENSION = "rar"
+
+    submissions_file.save(dst=dest_directory)
+    file_name = submissions_file.filename
+
+    # check if name contains an extension 
+    if not file_name.endswith('.'+ EXTENSION):
+       file_name += '.'+ EXTENSION
+
+    file_path = dest_directory.joinpath(file_name)
+    # check if exists
+    status = [file_extract(file_path), True][os.path.exists(file_path)]
+    return status
+
+
 
 def run_grader_commands(course_code, lab_id):
     curr_dir = str(Path(__file__).parent.resolve())
