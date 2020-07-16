@@ -5,9 +5,9 @@ from graderx.graders import manager
 from werkzeug.utils import secure_filename
 import os
 
-available_labs = ['lab1_client', 'lab3']
+AVAILABLE_LABS = ['lab1_client', 'lab3']
 
-ALLOWED_EXTENSIONS = {'rar'}
+ALLOWED_EXTENSIONS = {'rar', '7z', 'zip'}
 
 
 def allowed_file(filename):
@@ -22,7 +22,7 @@ def get_labs():
     """
     # TODO: make the cc451 grader comply with the directory structure to support dynamic lab names fetch
     return jsonify({
-        'labs': available_labs
+        'labs': AVAILABLE_LABS
     }), 200
 
 
@@ -43,6 +43,8 @@ def generate_results(course_code, lab_id):
     Recieves the submissions of the lab identified by course_code and lab_id
     then runs the grader through manager then informs the client with the status
     """
+    if lab_id not in AVAILABLE_LABS:
+        return jsonify({'status': f'{lab_id} does not exist'}), 404
     # ensure that the submissions file is in the request
     if 'submissions_file' not in request.files:
         return jsonify({'status': 'submissions file must be included'}), 400
@@ -52,22 +54,22 @@ def generate_results(course_code, lab_id):
             'status': "no selected file"
         }), 400
     if submissions_file and allowed_file(submissions_file.filename):
-        #TODO: secure filename
-        if lab_id in available_labs:
-            status = manager.run_grader(course_code, lab_id, submissions_file)
-            return jsonify({
-                'status': "SUCCESS" if status else "FAIL"
-            }), 200
-        else:
-            return jsonify({
-                'status': f"no lab with the id {lab_id} does not exist"
-            }), 404
+        # TODO: secure filename
+        status = manager.run_grader(course_code, lab_id, submissions_file)
+        return jsonify({
+            'status': "SUCCESS" if status else "FAIL"
+        }), 200
+    else:
+        return jsonify({
+            'status': "the file type is not supported, supported types are " + ', '.join(ALLOWED_EXTENSIONS)
+        }), 400
+
 
 @app.route('/results/<course_code>/<lab_id>', methods=["GET"])
 def get_results(course_code, lab_id):
-    path_to_result = Path(__file__).parent / 'graders/courses/cc451/app/res/' / lab_id
+    path_to_result = Path(__file__).parent / \
+        'graders/courses/cc451/app/res/' / lab_id
     if path_to_result.exists():
         return send_file(str(path_to_result))
     else:
         return "Results file for this lab not found, you must upload submissions first", 404
-    

@@ -5,10 +5,21 @@ import subprocess
 import os
 ## dependencies for docker
 import patoolib
+import glob
+import shutil
 # pip install patool
 
+
+def clean_directory(dir):
+    files = dir.glob('*')
+    for f in files:
+        if f.is_dir():
+            shutil.rmtree(str(f))
+        else:
+            f.unlink()
+
 def file_extract(file_path, verbosity=1):
-    patoolib.extract_archive(file_path, verbosity=verbosity)
+    patoolib.extract_archive(file_path, outdir=file_path.parent, verbosity=verbosity)
     os.remove(file_path)
     return True
 
@@ -27,8 +38,9 @@ def extract_submissions(dest_directory: Path, submissions_file: FileStorage,  ve
     """
     EXTENSION = "rar"
 
-    submissions_file.save(dst=dest_directory)
     file_name = submissions_file.filename
+    clean_directory(dest_directory)
+    submissions_file.save(dst=(dest_directory / file_name))
 
     # check if name contains an extension 
     if not file_name.endswith('.'+ EXTENSION):
@@ -57,10 +69,7 @@ def run_grader_commands(course_code, lab_id):
 
 def run_grader(course_code: str, lab_id: str, submissions_file: FileStorage) -> dict:
     curr_dir = str(Path(__file__).parent.resolve())
-    try:
-        extract_submissions(Path(f"{curr_dir}/courses/{course_code}/app/{lab_id}/submissions/2020"), submissions_file)
-    except:
-        return False
+    extract_submissions(Path(f"{curr_dir}/courses/{course_code}/app/{lab_id}/submissions/2020"), submissions_file)
     run_grader_commands(course_code, lab_id)
     return True
     
