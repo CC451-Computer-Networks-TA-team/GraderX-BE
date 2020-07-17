@@ -57,9 +57,9 @@ def extract_submissions(dest_directory: Path, submissions_file: FileStorage,  ve
 
 
 
-def run_grader_commands(course_code, lab_id):
+def run_grader_commands(lab_id):
     curr_dir = str(Path(__file__).parent.resolve())
-    cmd = shlex.split(f"pytest -vv --tb=short --show-capture=no {curr_dir}/courses/{course_code}/app/{lab_id}/test_run_grader.py")
+    cmd = shlex.split(f"pytest -vv --tb=short --show-capture=no {curr_dir}/courses/cc451/app/{lab_id}/test_run_grader.py")
     file_name = "output.txt"
     with open(file_name, "w+") as f:
         subprocess.run(cmd, stdout=f)
@@ -71,20 +71,9 @@ def run_grader_commands(course_code, lab_id):
             subprocess.run(cmd, stdin=fi, stdout=fo)
 
 
-def run_grader(course_code: str, lab_id: str, submissions_file: FileStorage) -> dict:
+def run_grader(lab_id: str, submissions_file: FileStorage) -> dict:
     curr_dir = str(Path(__file__).parent.resolve())
-    extract_submissions(Path(f"{curr_dir}/courses/{course_code}/app/{lab_id}/submissions/2020"), submissions_file)
-    run_grader_commands(course_code, lab_id)
+    extract_submissions(Path(f"{curr_dir}/courses/cc451/app/{lab_id}/submissions/2020"), submissions_file)
+    run_grader_commands(lab_id)
     return True
     
-
-def get_courses() -> list:
-    """
-    Returns a list of all the existing courses
-    """
-    p = Path(__file__).parent / 'courses'
-    return [x.name for x in p.iterdir() if x.is_dir]
-
-
-class EmptyCourseError(Exception):
-    pass

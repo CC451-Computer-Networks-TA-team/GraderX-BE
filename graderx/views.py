@@ -42,10 +42,10 @@ def get_labs():
     }), 200
 
 
-@app.route('/results/<course_code>/<lab_id>', methods=["POST"])
-def generate_results(course_code, lab_id):
+@app.route('/results/cc451/<lab_id>', methods=["POST"])
+def generate_results(lab_id):
     """
-    Recieves the submissions of the lab identified by course_code and lab_id
+    Recieves the submissions of the lab identified by lab_id
     then runs the grader through manager then informs the client with the status
     """
     if lab_id not in AVAILABLE_LABS:
@@ -69,7 +69,7 @@ def generate_results(course_code, lab_id):
 
     if allowed_file(submissions_file.filename):
         # TODO: secure filename
-        status = manager.run_grader(course_code, lab_id, submissions_file)
+        status = manager.run_grader(lab_id, submissions_file)
         return jsonify({
             'status': UPLOAD_STATUS.SUCCESS.value if status else UPLOAD_STATUS.GRADER_FAILED.value
         }), 200
@@ -79,8 +79,8 @@ def generate_results(course_code, lab_id):
         }), 400
 
 
-@app.route('/results/<course_code>/<lab_id>', methods=["GET"])
-def get_results(course_code, lab_id):
+@app.route('/results/cc451/<lab_id>', methods=["GET"])
+def get_results(lab_id):
     # TODO: secure filename
     path_to_result = Path(__file__).parent / \
         'graders/courses/cc451/app/res/' / lab_id
