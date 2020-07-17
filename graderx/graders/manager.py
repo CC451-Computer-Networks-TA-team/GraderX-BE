@@ -19,7 +19,7 @@ def clean_directory(dir):
             f.unlink()
 
 
-def extract_file(file_path, verbosity=1):
+def extract_file(file_path, verbosity=-1):
     patoolib.extract_archive(
         file_path, outdir=file_path.parent, verbosity=verbosity)
     os.remove(file_path)
@@ -39,7 +39,6 @@ def extract_submissions(dest_directory: Path, submissions_file: FileStorage,  ve
     extracts the submissions file in the destenation directory and removes the rar (or Whatever) file
 
     """
-    EXTENSION = "rar"
 
     file_name = submissions_file.filename
     # clean the submissions directory, if it doesn't exist create it along with missing parents
@@ -47,15 +46,16 @@ def extract_submissions(dest_directory: Path, submissions_file: FileStorage,  ve
         clean_directory(dest_directory)
     else:
         dest_directory.mkdir(parents=True)
+
     submissions_file.save(dst=(dest_directory / file_name))
-
-    # check if name contains an extension
-    if not file_name.endswith('.' + EXTENSION):
-        file_name += '.' + EXTENSION
-
     file_path = dest_directory.joinpath(file_name)
     # check if exists
-    status = [extract_file(file_path), False][os.path.exists(file_path)]
+    try:
+        status = [extract_file(file_path), False][os.path.exists(file_path)]
+        print("***[Success]: File extracted successfully")
+    except:
+        print("***[Error]: File is not RAR archive")
+        return False
     return status
 
 
