@@ -39,7 +39,11 @@ def extract_submissions(dest_directory: Path, submissions_file: FileStorage,  ve
     EXTENSION = "rar"
 
     file_name = submissions_file.filename
-    clean_directory(dest_directory)
+    # clean the submissions directory, if it doesn't exist create it along with missing parents
+    if dest_directory.exists():
+        clean_directory(dest_directory)
+    else:
+        dest_directory.mkdir(parents=True)
     submissions_file.save(dst=(dest_directory / file_name))
 
     # check if name contains an extension 

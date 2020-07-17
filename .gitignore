@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+
+**/scratch_disk/*
+!**/.gitkeep
+**/submissions
+
 # C extensions
 *.so
 
