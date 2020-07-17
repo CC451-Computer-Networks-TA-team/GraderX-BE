@@ -76,7 +76,7 @@ def test_status_file_unsupported(client):
     assert rv.json['status'] == views.UPLOAD_STATUS.UNSUPPORTED_FILE.value and rv.status_code == 400
 
 def test_status_failed_grading(monkeypatch, client):
-    def mock_run_grader(course_id, lab_id, submissions_file):
+    def mock_run_grader(lab_id, submissions_file):
         return False
     
     monkeypatch.setattr(manager, "run_grader",mock_run_grader)
@@ -88,7 +88,7 @@ def test_status_failed_grading(monkeypatch, client):
 
 
 def test_status_successful_grading(monkeypatch, client):
-    def mock_run_grader(course_id, lab_id, submissions_file):
+    def mock_run_grader(lab_id, submissions_file):
         return True
     
     monkeypatch.setattr(manager, "run_grader",mock_run_grader)
