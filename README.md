@@ -55,3 +55,7 @@ Notes
 -----------
 - When you try to upload a submissions file to the api, you'll be prompted to enter your password because the grader requires __sudo__ access
 
+- If you got :
+    > SyntaxError: Non-ASCII character '\xe2' in file
+
+    just add `# -*- coding: utf-8 -*-` to the top of `console_log_parser.py` file
