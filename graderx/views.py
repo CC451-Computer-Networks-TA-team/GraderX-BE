@@ -69,10 +69,15 @@ def generate_results(lab_id):
 
     if allowed_file(submissions_file.filename):
         # TODO: secure filename
-        status = manager.run_grader(lab_id, submissions_file)
-        return jsonify({
-            'status': UPLOAD_STATUS.SUCCESS.value if status else UPLOAD_STATUS.GRADER_FAILED.value
-        }), 200
+        try:
+            manager.run_grader(lab_id, submissions_file)
+            return jsonify({
+                'status': UPLOAD_STATUS.SUCCESS.value
+            }), 200
+        except:
+            return jsonify({
+                'status': UPLOAD_STATUS.GRADER_FAILED.value
+            }), 500
     else:
         return jsonify({
             'status': UPLOAD_STATUS.UNSUPPORTED_FILE.value
