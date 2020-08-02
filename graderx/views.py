@@ -14,6 +14,8 @@ AVAILABLE_LABS = ['lab1_client', 'lab3', 'lab4']
 
 ALLOWED_EXTENSIONS = {'rar', '7z', 'zip'}
 
+currentStatusString = ""
+
 
 def lab_not_exist_status(lab_id):
     return f'{lab_id} does not exist'
@@ -69,7 +71,6 @@ def generate_results(lab_id):
         return jsonify({
             'status': UPLOAD_STATUS.FILE_EMPTY.value
         }), 400
-
     if allowed_file(submissions_file.filename):
         # TODO: secure filename
         try:
@@ -153,3 +154,9 @@ def set_response_headers(response):
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
+
+
+@app.route('/get_status', methods=["GET"])
+def get_status():
+    s = manager.get_status()
+    return s, 200
