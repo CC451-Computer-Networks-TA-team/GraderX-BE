@@ -142,3 +142,7 @@ cython_debug/
 
 #Courses
 **/cc451/*
+
+#results
+output.txt
+parser_output
