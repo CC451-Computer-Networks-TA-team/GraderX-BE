@@ -8,6 +8,7 @@ def generate_random_code():
     return ''.join(random.choice(string.ascii_uppercase + string.digits)
                           for _ in range(12))
 
+@pytest.mark.skip(reason="functionality removed for being useless temporarily")
 def test_exception_if_course_empty():
     course_code = generate_random_code()
     p = Path(__file__).parent / 'courses' / course_code / 'labs'
@@ -18,12 +19,14 @@ def test_exception_if_course_empty():
     p.parent.rmdir()
 
 
+@pytest.mark.skip(reason="functionality removed for being useless temporarily")
 def test_exception_if_course_not_exist():
     course_code = generate_random_code()
     with pytest.raises(FileNotFoundError):
         assert manager.get_lab_ids(course_code)
 
 
+@pytest.mark.skip(reason="functionality removed for being useless temporarily")
 def test_receives_course_labs():
     course_code = generate_random_code()
     p = Path(__file__).parent / 'courses' / course_code / 'labs'
