@@ -79,5 +79,11 @@ def run_grader(lab_id: str, submissions_file: FileStorage) -> dict:
     run_grader_commands(lab_id)
 
 
+def save_single_submission(lab_id, submission_file, file_name):
+    curr_dir = str(Path(__file__).parent.resolve())
+    Path(f'{curr_dir}/courses/cc451/app/{lab_id}/submissions/2020/{file_name}').write_bytes(
+        submission_file.getbuffer())
+
+
 class ArchiveDamagedError(Exception):
     pass
