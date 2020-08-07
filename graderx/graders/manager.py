@@ -58,8 +58,12 @@ def extract_submissions(dest_directory, submissions_file,  verbosity=0):
 
 def run_grader_commands(lab_id):
     curr_dir = str(Path(__file__).parent.resolve())
-    cmd = shlex.split(
-        f"pytest -vv --tb=short --show-capture=no {curr_dir}/courses/cc451/app/{lab_id}/test_run_grader.py")
+    if ("GRADERX_FJ" in os.environ) and os.environ['GRADERX_FJ'] == "ENABLED":
+        cmd = shlex.split(
+            f"firejail --profile={curr_dir}/courses/cc451/app/{lab_id}/firejail.profile pytest -vv --tb=short --show-capture=no {curr_dir}/courses/cc451/app/{lab_id}/test_run_grader.py")
+    else:
+        cmd = shlex.split(
+            f"pytest -vv --tb=short --show-capture=no {curr_dir}/courses/cc451/app/{lab_id}/test_run_grader.py")
     file_name = "output.txt"
     with open(file_name, "w+") as f:
         subprocess.run(cmd, stdout=f)

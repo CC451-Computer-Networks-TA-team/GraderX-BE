@@ -10,7 +10,7 @@ from graderx.graders import import_submissions as im_sub
 from gspread import SpreadsheetNotFound
 
 
-AVAILABLE_LABS = ['lab1_client', 'lab3']
+AVAILABLE_LABS = ['lab1_client', 'lab3', 'lab4']
 
 ALLOWED_EXTENSIONS = {'rar', '7z', 'zip'}
 
