@@ -3,11 +3,9 @@ from pathlib import Path
 import shlex
 import subprocess
 import os
-# dependencies for docker
 import patoolib
 import glob
 import shutil
-# pip install patool
 
 
 def clean_directory(dir):
