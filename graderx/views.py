@@ -14,8 +14,6 @@ AVAILABLE_LABS = ['lab1_client', 'lab3', 'lab4']
 
 ALLOWED_EXTENSIONS = {'rar', '7z', 'zip'}
 
-currentStatusString = ""
-
 
 def lab_not_exist_status(lab_id):
     return f'{lab_id} does not exist'

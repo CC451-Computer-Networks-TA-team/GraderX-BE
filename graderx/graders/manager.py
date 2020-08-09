@@ -7,12 +7,7 @@ from pathlib import Path
 import shlex
 import subprocess
 import os
-<< << << < HEAD
 # dependencies for docker
-== == == =
-# dependencies for docker
->>>>>> > d02061b... Implement Status feature
-# pip install patool
 
 currentStatusString = ""
 
