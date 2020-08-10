@@ -6,6 +6,9 @@ from werkzeug.utils import secure_filename
 import os
 from enum import Enum
 from functools import partial
+from graderx.graders import import_submissions as im_sub
+from gspread import SpreadsheetNotFound
+
 
 AVAILABLE_LABS = ['lab1_client', 'lab3']
 
@@ -93,3 +96,60 @@ def get_results(lab_id):
         return send_file(str(path_to_result))
     else:
         return "Results file for this lab not found, you must upload submissions first", 404
+
+
+@app.route('/submissions/cc451/<lab_id>', methods=['POST'])
+def add_submissions(lab_id):
+    access_token = request.json['accessToken']
+    sheet_link = request.json['sheetLink']
+    # Checks if the field parameter is included and not empty
+    if 'field' in request.args and request.args.get('field'):
+        importer = im_sub.GoogleImportSubmissions(
+            access_token, sheet_link, lab_id, request.args.get('field'))
+    else:
+        importer = im_sub.GoogleImportSubmissions(
+            access_token, sheet_link, lab_id)
+    try:
+        importer.import_submissions()
+        return "SUCCESS", 200
+    except:
+        # TODO: handle detectable exceptions
+        return "Failed to import submissions", 500
+
+
+@app.route('/submissions/validate', methods=['POST'])
+def validate_import_source():
+    access_token = request.json['accessToken']
+    sheet_link = request.json['sheetLink']
+    try:
+        importer = im_sub.GoogleImportSubmissions(access_token, sheet_link)
+    except:
+        # TODO: handle detectable exceptions
+        return "Invalid sheet link", 400
+    try:
+        importer.only_one_uploads_column()
+        return "SUCCESS", 200
+    except im_sub.TooManyUploadColumnsError as e:
+        fields = importer.get_url_fields()
+        return jsonify({'msg': str(e), 'fields': fields}), 400
+    except im_sub.InvalidSheetError as e:
+        return str(e), 400
+    except:
+        return "Failed to import submissions", 500
+
+
+@app.route('/grader/cc451/<lab_id>')
+def start_grading(lab_id):
+    try:
+        manager.run_grader_commands(lab_id)
+        return "SUCCESS", 200
+    except:
+        return "Failed to run the grader", 500
+
+
+@app.after_request
+def set_response_headers(response):
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
