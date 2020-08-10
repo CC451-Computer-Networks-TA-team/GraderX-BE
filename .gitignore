@@ -151,3 +151,9 @@ cython_debug/
 #results
 output.txt
 parser_output
+
+#preset_graders libs
+!**/preset_graders/*/lib
+
+#compiled C files
+**/a.out
