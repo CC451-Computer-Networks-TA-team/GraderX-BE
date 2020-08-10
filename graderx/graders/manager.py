@@ -23,10 +23,9 @@ def extract_file(file_path, verbosity=-1):
     patoolib.extract_archive(
         file_path, outdir=file_path.parent, verbosity=verbosity)
     os.remove(file_path)
-    return True
 
 
-def extract_submissions(dest_directory: Path, submissions_file: FileStorage,  verbosity=0):
+def extract_submissions(dest_directory, submissions_file,  verbosity=0):
     """
     Args:
     dest_directory: Path. Submission directory found in [lab_name]/config.py
@@ -47,16 +46,14 @@ def extract_submissions(dest_directory: Path, submissions_file: FileStorage,  ve
     else:
         dest_directory.mkdir(parents=True)
 
-    submissions_file.save(dst=(dest_directory / file_name))
+    submissions_file.save(dst=(dest_directory.joinpath(file_name)))
     file_path = dest_directory.joinpath(file_name)
-    # check if exists
     try:
-        status = [extract_file(file_path), False][os.path.exists(file_path)]
+        extract_file(file_path)
         print("***[Success]: File extracted successfully")
     except:
-        print("***[Error]: File is not RAR archive")
-        return False
-    return status
+        print("***[Error]: Archive is damaged")
+        raise ArchiveDamagedError
 
 
 def run_grader_commands(lab_id):
@@ -80,4 +77,7 @@ def run_grader(lab_id: str, submissions_file: FileStorage) -> dict:
     extract_submissions(Path(
         f"{curr_dir}/courses/cc451/app/{lab_id}/submissions/2020"), submissions_file)
     run_grader_commands(lab_id)
-    return True
+
+
+class ArchiveDamagedError(Exception):
+    pass
