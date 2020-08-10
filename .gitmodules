@@ -1,3 +1,6 @@
 [submodule "graderx/graders/courses/cc451"]
 	path = graderx/graders/courses/cc451
 	url = https://github.com/amohamed97/cc451-graders.git
+[submodule "graderx/graders/courses/test_course"]
+	path = graderx/graders/courses/test_course
+	url = https://github.com/CC451-Computer-Networks-TA-team/test-course-c
