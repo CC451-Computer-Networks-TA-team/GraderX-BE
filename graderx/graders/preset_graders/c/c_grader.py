@@ -17,23 +17,34 @@ test_cases = [
     ("5", "Sneaky \nTestCase\n", "Sneaky TestCase\n")
 ]
 
+submission_result_dict = {}
+
 def main():
     
     for _, dir, _ in os.walk(LAB_ABS_PATH.joinpath(f"submissions")):
         for i in dir:
+            global submission_result_dict
             submission_dir = str(LAB_ABS_PATH.joinpath(f"submissions")) + f"/{i}"
             compiler.compile_submission(Path(submission_dir))
+            submission_result_dict[i] = {
+                "passed": [],
+                "failed": []
+            }
             for tc in test_cases:
                 exec_command = f"./a.out"
                 cmd = shlex.split(exec_command)
                 cprocess = subprocess.run(
                     cmd, input=tc[1] ,cwd=submission_dir, capture_output=True, text=True)
-                print(tc[0])
                 differences = ""
                 for line in difflib.context_diff(cprocess.stdout, tc[2]):
                     differences += line + "\n"
-                print(differences)
-            print("--------------------------------------------------------------------------")
+                if(len(differences) == 0) :
+                    submission_result_dict[i]["passed"].append(tc[0])
+                else:
+                    submission_result_dict[i]["failed"].append({
+                        "tc_id": tc[0],
+                        "diff": differences
+                    })
     pass
 
 
