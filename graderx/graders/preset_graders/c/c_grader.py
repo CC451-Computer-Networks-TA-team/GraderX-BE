@@ -16,17 +16,11 @@ def main():
     except compiler.CompilationFailedError as e:
         print(e)
     """
-    test_cases_count = submissions_count = 0
-    for _, dirnames, filenames in os.walk(LAB_ABS_PATH.joinpath(f"submissions")):
-        submissions_count += len(dirnames)
-        break
     
-    for _, dirnames, filenames in os.walk(LAB_ABS_PATH.joinpath(f"test_cases")):
-        test_cases_count += len(filenames)
-        break
-
-    test_cases_count = int(test_cases_count / 2)
-    print(submissions_count)
+    for _, dir, _ in os.walk(LAB_ABS_PATH.joinpath(f"submissions")):
+        for i in dir:
+            s = str(LAB_ABS_PATH.joinpath(f"submissions")) + f"/{i}"
+            compiler.compile_submission(Path(s))
     pass
 
 
