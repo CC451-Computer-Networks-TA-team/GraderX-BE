@@ -2,6 +2,7 @@ import sys
 import os
 import shlex
 import subprocess
+import difflib
 from pathlib import Path
 import lib.compile_submission as compiler
 
@@ -17,23 +18,22 @@ test_cases = [
 ]
 
 def main():
-    """
-    Example compile_submission usage
-    try:
-        compiler.compile_submission(
-            LAB_ABS_PATH.joinpath("submissions/3645_5436"))
-    except compiler.CompilationFailedError as e:
-        print(e)
-    """
     
     for _, dir, _ in os.walk(LAB_ABS_PATH.joinpath(f"submissions")):
         for i in dir:
-            s = str(LAB_ABS_PATH.joinpath(f"submissions")) + f"/{i}"
-            compiler.compile_submission(Path(s))
-            s = "./a.out"
-            cmd = shlex.split(["./a.out", ])
-            cprocess = subprocess.run(
-            cmd, cwd=Path(s), capture_output=True, text=True)
+            submission_dir = str(LAB_ABS_PATH.joinpath(f"submissions")) + f"/{i}"
+            compiler.compile_submission(Path(submission_dir))
+            for tc in test_cases:
+                exec_command = f"./a.out"
+                cmd = shlex.split(exec_command)
+                cprocess = subprocess.run(
+                    cmd, input=tc[1] ,cwd=submission_dir, capture_output=True, text=True)
+                print(tc[0])
+                differences = ""
+                for line in difflib.context_diff(cprocess.stdout, tc[2]):
+                    differences += line + "\n"
+                print(differences)
+            print("--------------------------------------------------------------------------")
     pass
 
 
