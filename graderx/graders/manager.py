@@ -1,13 +1,15 @@
+import shutil
+import glob
+import patoolib
+import time
 from werkzeug.datastructures import FileStorage
 from pathlib import Path
 import shlex
 import subprocess
 import os
 # dependencies for docker
-import patoolib
-import glob
-import shutil
-# pip install patool
+
+currentStatusString = ""
 
 
 def clean_directory(dir):
@@ -76,11 +78,19 @@ def run_grader_commands(lab_id):
             subprocess.run(cmd, stdin=fi, stdout=fo)
 
 
+def get_status():
+    return currentStatusString
+
+
 def run_grader(lab_id: str, submissions_file: FileStorage) -> dict:
+    global currentStatusString
     curr_dir = str(Path(__file__).parent.resolve())
+    currentStatusString = "Processing"
     extract_submissions(Path(
         f"{curr_dir}/courses/cc451/app/{lab_id}/submissions/2020"), submissions_file)
+    currentStatusString = "Grading"
     run_grader_commands(lab_id)
+    currentStatusString = ""
 
 
 def save_single_submission(lab_id, submission_file, file_name):
