@@ -5,6 +5,7 @@ import subprocess
 import difflib
 from pathlib import Path
 import lib.compile_submission as compiler
+from lib import compute_results as compute_results
 
 COURSE_ABS_PATH = None
 LAB_ABS_PATH = None
@@ -45,6 +46,8 @@ def main():
                         "tc_id": tc[0],
                         "diff": differences
                     })
+
+    compute_results.compute_total_result(submission_result_dict, LAB_ABS_PATH)
     pass
 
 
