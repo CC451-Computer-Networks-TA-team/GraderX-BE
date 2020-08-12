@@ -1,15 +1,16 @@
+import shutil
+import glob
+import patoolib
+import time
 from werkzeug.datastructures import FileStorage
 from pathlib import Path
 import shlex
 import subprocess
 import os
 import mosspy
-
 # dependencies for docker
-import patoolib
-import glob
-import shutil
-# pip install patool
+
+currentStatusString = ""
 
 
 def clean_directory(dir):
@@ -32,10 +33,13 @@ def extract_submissions(dest_directory, submissions_file,  verbosity=0):
     Args:
     dest_directory: Path. Submission directory found in [lab_name]/config.py
     submissions_file: FileStorage. It is used by the request object to represent uploaded files. 
+
     Returns: bool
     status: True on sucessful extraction
+
     Actions:
     extracts the submissions file in the destenation directory and removes the rar (or Whatever) file
+
     """
 
     file_name = submissions_file.filename
@@ -87,16 +91,23 @@ def moss(lab_id: str):
         print("No base files")
     m.addFilesByWildcard("{curr_dir}/courses/cc451/app/{lab_id}/submissions/2020/*.py")
     url = m.send() 
-
     file_name = "{curr_dir}/courses/cc451/app/res/moss_output.txt"
     with open(file_name, "w+") as f:
         f.write(url)
 
+def get_status():
+    return currentStatusString
+
+
 def run_grader(lab_id: str, submissions_file: FileStorage) -> dict:
+    global currentStatusString
     curr_dir = str(Path(__file__).parent.resolve())
+    currentStatusString = "Processing"
     extract_submissions(Path(
         f"{curr_dir}/courses/cc451/app/{lab_id}/submissions/2020"), submissions_file)
+    currentStatusString = "Grading"
     run_grader_commands(lab_id)
+    currentStatusString = ""
     moss(lab_id)
 
 
