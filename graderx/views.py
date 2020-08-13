@@ -101,41 +101,72 @@ def get_results(lab_id):
 def add_submissions(lab_id):
     access_token = request.json['accessToken']
     sheet_link = request.json['sheetLink']
-    # Checks if the field parameter is included and not empty
-    if 'field' in request.args and request.args.get('field'):
-        importer = im_sub.GoogleImportSubmissions(
-            access_token, sheet_link, lab_id, request.args.get('field'))
-    else:
-        importer = im_sub.GoogleImportSubmissions(
-            access_token, sheet_link, lab_id)
-    try:
-        importer.import_submissions()
-        return "SUCCESS", 200
-    except:
-        # TODO: handle detectable exceptions
-        return "Failed to import submissions", 500
+    form_type = im_sub.MS_Submissions.check_link_source(sheet_link)
+    if form_type == 'ms forms':
+        importer = im_sub.MS_Submissions(
+                access_token, sheet_link, lab_id)
+        try:
+            importer.import_submissions()
+            return "SUCCESS", 200
+
+        except:
+            return "Failed to import submissions", 500
+
+
+    elif form_type == 'google forms':
+        # Checks if the field parameter is included and not empty
+        if 'field' in request.args and request.args.get('field'):
+            importer = im_sub.GoogleImportSubmissions(
+                access_token, sheet_link, lab_id, request.args.get('field'))
+        else:
+            importer = im_sub.GoogleImportSubmissions(
+                access_token, sheet_link, lab_id)
+        try:
+            importer.import_submissions()
+            return "SUCCESS", 200
+        except:
+            # TODO: handle detectable exceptions
+            return "Failed to import submissions", 500
 
 
 @app.route('/submissions/validate', methods=['POST'])
 def validate_import_source():
     access_token = request.json['accessToken']
     sheet_link = request.json['sheetLink']
-    try:
-        importer = im_sub.GoogleImportSubmissions(access_token, sheet_link)
-    except:
-        # TODO: handle detectable exceptions
-        return "Invalid sheet link", 400
-    try:
-        importer.only_one_uploads_column()
-        return "SUCCESS", 200
-    except im_sub.TooManyUploadColumnsError as e:
-        fields = importer.get_url_fields()
-        return jsonify({'msg': str(e), 'fields': fields}), 400
-    except im_sub.InvalidSheetError as e:
-        return str(e), 400
-    except:
-        return "Failed to import submissions", 500
+    form_type = im_sub.MS_Submissions.check_link_source(sheet_link)
+    if form_type == 'ms forms':
+        try:
+            importer = im_sub.MS_Submissions(access_token, sheet_link)
+        except:
+            return "Invalid sheet link", 400
+        try:
+            importer.only_one_uploads_column()
+            return "SUCCESS", 200
+        except:
+            return "Failed to import submissions", 500
 
+    elif form_type == 'google forms':
+        try:
+            importer = im_sub.GoogleImportSubmissions(access_token, sheet_link)
+        except:
+            # TODO: handle detectable exceptions
+            return "Invalid sheet link", 400
+        try:
+            importer.only_one_uploads_column()
+            return "SUCCESS", 200
+        except im_sub.TooManyUploadColumnsError as e:
+            fields = importer.get_url_fields()
+            return jsonify({'msg': str(e), 'fields': fields}), 400
+        except im_sub.InvalidSheetError as e:
+            return str(e), 400
+        except:
+            return "Failed to import submissions", 500
+
+    else:
+        return "Invalid sheet link", 400
+
+
+    
 
 @app.route('/grader/cc451/<lab_id>')
 def start_grading(lab_id):
