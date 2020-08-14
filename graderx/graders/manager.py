@@ -75,7 +75,10 @@ def run_grader_commands(lab_id):
         with open(parser_file, "w+") as fo:
             cmd = shlex.split(
                 f"python {curr_dir}/courses/cc451/app/lib/console_log_parser.py {lab_number} {curr_dir}/courses/cc451/app/res/{lab_id}")
-            subprocess.run(cmd, stdin=fi, stdout=fo)
+            completed_process = subprocess.run(
+                cmd, stdin=fi, stdout=fo)
+            if completed_process.returncode != 0:
+                raise RuntimeError
 
 
 def get_status():
