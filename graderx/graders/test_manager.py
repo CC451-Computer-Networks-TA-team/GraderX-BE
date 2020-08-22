@@ -14,6 +14,7 @@ def generate_random_code():
                    for _ in range(12))
 
 
+@pytest.mark.skip()
 def test_extraction_cleans_directory_if_exists(monkeypatch):
     monkeypatch.setattr(manager, 'extract_file', lambda x: None)
     manager.clean_directory = Mock()
@@ -24,6 +25,7 @@ def test_extraction_cleans_directory_if_exists(monkeypatch):
     manager.clean_directory.assert_called_once()
 
 
+@pytest.mark.skip()
 def test_extraction_creates_dir_if_not_exist(monkeypatch):
     monkeypatch.setattr(manager, 'extract_file', lambda x: None)
     monkeypatch.setattr(manager, 'clean_directory', lambda x: None)
@@ -35,6 +37,7 @@ def test_extraction_creates_dir_if_not_exist(monkeypatch):
     path_mock.mkdir.assert_called_once_with(parents=True)
 
 
+@pytest.mark.skip()
 def test_extraction_return_if_extract_file_succeeds(monkeypatch):
     monkeypatch.setattr(manager, 'extract_file', lambda x: None)
     monkeypatch.setattr(manager, 'clean_directory', lambda x: None)
@@ -46,6 +49,7 @@ def test_extraction_return_if_extract_file_succeeds(monkeypatch):
             "manager.extract_submissions raised an unexpected exception\n" + str(e))
 
 
+@pytest.mark.skip()
 def test_extraction_return_if_extract_file_fails(monkeypatch):
     def mock_extract_file(filepath):
         raise FileNotFoundError

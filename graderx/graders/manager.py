@@ -1,103 +1,86 @@
-import shutil
-import glob
-import patoolib
-import time
-from werkzeug.datastructures import FileStorage
+import json
+from .stdout_graders.c import c_grader
+from .unittest_graders.pytest import pytest_grader
 from pathlib import Path
-import shlex
-import subprocess
-import os
-# dependencies for docker
-
-currentStatusString = ""
+from .lib import helpers
 
 
-def clean_directory(dir):
-    files = dir.glob('*')
-    for f in files:
-        if f.is_dir():
-            shutil.rmtree(str(f))
+def get_courses_config():
+    """
+    Creates a dict out of courses_config json file then returns it
+    """
+    with open(Path(__file__).parent.joinpath("courses_config.json")) as f:
+        return json.load(f)
+
+
+def get_courses():
+    return list(get_courses_config().keys())
+
+
+def get_labs(course_name):
+    return get_courses_config()[course_name]['labs']
+
+
+def select_course_grader(course_name):
+    """
+    Finds the grader responsible for the given course then returns its main module
+    """
+    course_config = get_courses_config()[course_name]
+    if course_config['type'] == "stdout":
+        if course_config['variant'] == "c":
+            return c_grader
         else:
-            f.unlink()
-
-
-def extract_file(file_path, verbosity=-1):
-    patoolib.extract_archive(
-        file_path, outdir=file_path.parent, verbosity=verbosity)
-    os.remove(file_path)
-
-
-def extract_submissions(dest_directory, submissions_file,  verbosity=0):
-    """
-    Args:
-    dest_directory: Path. Submission directory found in [lab_name]/config.py
-    submissions_file: FileStorage. It is used by the request object to represent uploaded files. 
-
-    Returns: bool
-    status: True on sucessful extraction
-
-    Actions:
-    extracts the submissions file in the destenation directory and removes the rar (or Whatever) file
-
-    """
-
-    file_name = submissions_file.filename
-    # clean the submissions directory, if it doesn't exist create it along with missing parents
-    if dest_directory.exists():
-        clean_directory(dest_directory)
+            raise InvalidConfigError()
+    elif course_config['type'] == "unittest":
+        if course_config['variant'] == "pytest":
+            return pytest_grader
+        else:
+            raise InvalidConfigError()
     else:
-        dest_directory.mkdir(parents=True)
-
-    submissions_file.save(dst=(dest_directory.joinpath(file_name)))
-    file_path = dest_directory.joinpath(file_name)
-    try:
-        extract_file(file_path)
-        print("***[Success]: File extracted successfully")
-    except:
-        print("***[Error]: Archive is damaged")
-        raise ArchiveDamagedError
+        raise InvalidConfigError()
 
 
-def run_grader_commands(lab_id):
-    curr_dir = str(Path(__file__).parent.resolve())
-    if ("GRADERX_FJ" in os.environ) and os.environ['GRADERX_FJ'] == "ENABLED":
-        cmd = shlex.split(
-            f"firejail --profile={curr_dir}/courses/cc451/app/{lab_id}/firejail.profile pytest -vv --tb=short --show-capture=no {curr_dir}/courses/cc451/app/{lab_id}/test_run_grader.py")
-    else:
-        cmd = shlex.split(
-            f"pytest -vv --tb=short --show-capture=no {curr_dir}/courses/cc451/app/{lab_id}/test_run_grader.py")
-    file_name = "output.txt"
-    with open(file_name, "w+") as f:
-        subprocess.run(cmd, stdout=f)
-    parser_file = "parser_output"
-    lab_number = lab_id.split('lab')[-1]
-    with open(file_name, "r") as fi:
-        with open(parser_file, "w+") as fo:
-            cmd = shlex.split(
-                f"python {curr_dir}/courses/cc451/app/lib/console_log_parser.py {lab_number} {curr_dir}/courses/cc451/app/res/{lab_id}")
-            subprocess.run(cmd, stdin=fi, stdout=fo)
+def run_grader(course_name, lab):
+    """
+    All the possibly returned modules will have a run_grader function that will be invoked here
+    """
+    course_grader = select_course_grader(course_name)
+    course_grader.run_grader(course_name, lab)
 
 
-def get_status():
-    return currentStatusString
+def add_submissions(course_name, lab, submissions_file):
+    """
+    All the possibly returned modules will have a add_submissions function that will be invoked here
+    """
+    course_grader = select_course_grader(course_name)
+    course_grader.add_submissions(course_name, lab, submissions_file)
 
 
-def run_grader(lab_id: str, submissions_file: FileStorage) -> dict:
-    global currentStatusString
-    curr_dir = str(Path(__file__).parent.resolve())
-    currentStatusString = "Processing"
-    extract_submissions(Path(
-        f"{curr_dir}/courses/cc451/app/{lab_id}/submissions/2020"), submissions_file)
-    currentStatusString = "Grading"
-    run_grader_commands(lab_id)
-    currentStatusString = ""
+def save_single_submission(course_name, lab, file_in_memory, filename):
+    course_grader = select_course_grader(course_name)
+    course_grader.save_single_submission(
+        course_name, lab, file_in_memory, filename)
 
 
-def save_single_submission(lab_id, submission_file, file_name):
-    curr_dir = str(Path(__file__).parent.resolve())
-    Path(f'{curr_dir}/courses/cc451/app/{lab_id}/submissions/2020/{file_name}').write_bytes(
-        submission_file.getbuffer())
+def clear_submissions(course_name, lab):
+    """
+    Deletes everything inside the requested lab's submissions directory
+    """
+    course_grader = select_course_grader(course_name)
+    course_grader.clear_submissions(course_name, lab)
 
 
-class ArchiveDamagedError(Exception):
+def compressed_results(course_name, lab):
+    """
+    All the possibly returned modules will have a results_to_download function that will be invoked here
+    """
+    course_grader = select_course_grader(course_name)
+    # returns a list of file paths
+    results_files = course_grader.results_to_download(course_name, lab)
+    # create a zip file of the returned file paths
+    zip_file_path = helpers.create_zip_file(results_files)
+    return zip_file_path
+
+
+class InvalidConfigError(Exception):
     pass

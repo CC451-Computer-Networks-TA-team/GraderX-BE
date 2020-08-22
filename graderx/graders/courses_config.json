@@ -1,0 +1,21 @@
+{
+  "cc451": {
+    "type": "unittest",
+    "variant": "pytest",
+    "labs": [
+      "lab1_client",
+      "lab1_server",
+      "lab3",
+      "lab4"
+    ]
+  },
+  "test_course": {
+    "type": "stdout",
+    "variant": "c",
+    "labs": [
+      "lab1",
+      "lab2",
+      "lab3"
+    ]
+  }
+}

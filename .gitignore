@@ -19,7 +19,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/
 lib64/
 parts/
 sdist/
@@ -152,8 +152,8 @@ cython_debug/
 output.txt
 parser_output
 
-#preset_graders libs
-!**/preset_graders/*/lib
-
 #compiled C files
 **/a.out
+
+#downloadable compressed file
+**/compressed_results.zip
