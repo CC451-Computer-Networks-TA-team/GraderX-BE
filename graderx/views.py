@@ -149,6 +149,7 @@ def get_results():
         results_type = request.args['type']
     except KeyError:
         return jsonify({'status': "course, lab and type query parameters must be included"}), 400
+
     if results_type == "download":
         try:
             return send_file(manager.compressed_results(course_name, lab_name))
@@ -156,6 +157,22 @@ def get_results():
             return jsonify({
                 'status': "Failed to fetch results, please make sure you run the grader first"
             }), 400
+
+    elif results_type == "diff":
+        # change it to (test_course)
+        if course_name == "cc451":
+
+            try:
+                return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
+                # return jsonify(manager.get_diff_results_file(course_name, lab_name)), 200
+            except:
+                return jsonify({
+                    'status': "Failed to fetch diff results, please make sure you run the grader first"
+                }), 400
+    else:
+        return jsonify({
+            'status': "Failed to fetch results, please make sure you run the grader first"
+        }), 400
 
 
 @app.route('/submissions/validate', methods=['POST'])

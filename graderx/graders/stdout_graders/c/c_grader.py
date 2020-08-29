@@ -8,6 +8,7 @@ from .lib import compile_submission as compiler
 from .lib import compute_results as compute_results
 from .lib import test_cases_parser as tc_parser
 from .lib.submissions_extraction import extract_submissions, clean_directory
+import json
 
 
 def get_lab_path(course, lab):
@@ -103,3 +104,10 @@ def results_to_download(course, lab):
     """
     lab_path = get_lab_path(course, lab)
     return list(lab_path.glob("**/*_results.txt")) + list(lab_path.glob("**/*_result_summary.txt"))
+
+def get_diff_results_file(course_name, lab):
+    path = Path("graderx").joinpath("graders").joinpath("courses").joinpath(course_name).joinpath(lab)
+    file_path = path.joinpath(f"{lab}_diff_result.json")
+    with open(file_path) as f:
+        data = json.load(f)
+    return data

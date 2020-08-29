@@ -3,7 +3,7 @@ from .stdout_graders.c import c_grader
 from .unittest_graders.pytest import pytest_grader
 from pathlib import Path
 from .lib import helpers
-
+import os
 
 def get_courses_config():
     """
@@ -47,6 +47,11 @@ def run_grader(course_name, lab):
     course_grader = select_course_grader(course_name)
     course_grader.run_grader(course_name, lab)
 
+def run_grader_diff(course_name, lab):
+    course_grader = select_course_grader(course_name)
+    return course_grader.get_diff_results_file(course_name, lab)
+
+
 
 def add_submissions(course_name, lab, submissions_file):
     """
@@ -81,6 +86,13 @@ def compressed_results(course_name, lab):
     zip_file_path = helpers.create_zip_file(results_files)
     return zip_file_path
 
+def get_diff_results_file(course_name, lab):
+    path = Path("graderx").joinpath("graders").joinpath("courses").joinpath(course_name).joinpath(lab)
+    file_path = path.joinpath(f"{lab}_diff_result.json")
+    with open(file_path) as f:
+     data = json.load(f)
+     
+    return data
 
 class InvalidConfigError(Exception):
     pass

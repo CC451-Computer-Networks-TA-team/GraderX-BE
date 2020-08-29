@@ -3,7 +3,7 @@ import shlex
 import subprocess
 import os
 from .lib.submissions_extraction import extract_submissions, clean_directory
-
+import json
 
 def get_course_root(course):
     return Path(__file__).joinpath(
@@ -94,3 +94,12 @@ def results_to_download(course, lab):
     course_path = get_course_root(course)
     result_files_path = list(course_path.glob(f"res/{lab}*"))
     return result_files_path
+
+
+# TODO: delete it
+def get_diff_results_file(course_name, lab):
+    path = Path("graderx").joinpath("graders").joinpath("courses").joinpath(course_name).joinpath(lab)
+    file_path = path.joinpath(f"{lab}_diff_result.json")
+    with open(file_path) as f:
+        data = json.load(f)
+    return data
