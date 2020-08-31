@@ -14,7 +14,9 @@ def compute_total_result(submissions_list, lab_abs_path):
     grades_summary = {}
     for item in submissions_list:
         grade = compute_total_result_by_id(item)
-        grades_summary[item['id']] = grade
+        split_ids = item['id'].split('_')
+        for i in split_ids:
+            grades_summary[i] = grade
         failed_report = get_failed_cases(item['failed'])
         content = format_content(grade, failed_report)
         path = get_path(lab_abs_path, item['id'])
@@ -23,6 +25,11 @@ def compute_total_result(submissions_list, lab_abs_path):
     write_diff_json(submissions_list, lab_abs_path)
     write_chart_json(submissions_list, lab_abs_path, grades_summary)
     write_summary_report(grades_summary, lab_abs_path)
+
+
+def handle_grades(id):
+
+    pass
 
 
 def get_failed_cases(fail_data):
@@ -121,17 +128,15 @@ def get_charts_json(submissions_list, grades_summary):
     # passed test cases
     passed = [i.get('passed') for i in submissions_list]
     passed = [item for l in passed for item in l]
+    passed_list = [{"tc_id": k, "pass-percentage": passed.count(k)/len(grades_summary)*100}
+                   for k in list(set(passed))]
 
-    passed_tc = {}
-    for i in passed:
-        passed_tc[i] = passed.count(i)/len(grades_summary)*100
-
-    # passed students
-    passed_students = [k for k, v in grades_summary.items()
-                       if v > pass_threshold]
+    # students pass percentage
+    students_list = [{"id": k, "grade": v}
+                     for k, v in grades_summary.items()]
     chart = {
-        'passed_tc': passed_tc,
-        'passed_students': passed_students
+        'passed_tc': passed_list,
+        'students_list': students_list
     }
 
     return json.dumps(chart)
