@@ -65,12 +65,15 @@ def run_grader(course, lab):
                 for line in difflib.context_diff(cprocess.stdout, tc[2]):
                     differences += line + "\n"
                 if(len(differences) == 0):
-                   current_submission[i]["passed"].append(tc[0])
+                   current_submission["passed"].append(tc[0])
                 else:
-                    current_submission[i]["failed"].append({
+                    current_submission["failed"].append({
                         "tc_id": tc[0],
-                        "diff": differences
+                        "output": cprocess.stdout,
+                        "expected": tc[2]
                     })
+            submission_result_list.append(current_submission)
+                
     # compute_total_result will take the results dict then create results files in the lab's directory
     compute_results.compute_total_result(submission_result_list, LAB_ABS_PATH)
 
