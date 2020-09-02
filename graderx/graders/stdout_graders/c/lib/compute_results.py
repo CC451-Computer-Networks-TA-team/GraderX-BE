@@ -14,9 +14,7 @@ def compute_total_result(submissions_list, lab_abs_path):
     grades_summary = {}
     for item in submissions_list:
         grade = compute_total_result_by_id(item)
-        split_ids = item['id'].split('_')
-        for i in split_ids:
-            grades_summary[i] = grade
+        grades_summary[item['id']] = grade
         failed_report = get_failed_cases(item['failed'])
         content = format_content(grade, failed_report)
         path = get_path(lab_abs_path, item['id'])
