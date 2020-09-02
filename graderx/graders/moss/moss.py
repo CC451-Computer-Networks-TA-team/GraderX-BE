@@ -33,7 +33,7 @@ class Moss:
 
         actual_files = []
         for dicr in input_name:
-            files = glob.glob(dicr+'/**/*',  recursive = True) 
+            files = glob.glob(dicr + '/**/*', recursive = True) 
             actual_files.extend(files)
 
         command.extend(actual_files)
@@ -51,6 +51,6 @@ class Moss:
             result['status'] = 'FAILED'
 
         opt = opt.stdout.decode("utf-8").split('\n')
-        result['url'] = opt[len(opt) -2 ]
+        result['url'] = opt[len(opt) -2]
 
         return result

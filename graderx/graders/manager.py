@@ -69,7 +69,7 @@ def apply_moss(submissions_file, form, course_name='moss_course', lab='moss_lab'
     course_grader = select_course_grader(course_name)
     course_grader.add_submissions(course_name, lab, submissions_file)
     path_to_moss = course_grader.get_lab_path(course_name, lab)
-    form['files']=path_to_moss
+    form['files'] = path_to_moss
     moss_ = moss.Moss()
     moss_.set_config(form)
     response = moss_.get_result()
