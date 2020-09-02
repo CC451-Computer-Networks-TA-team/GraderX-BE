@@ -68,7 +68,7 @@ def run_grader(course, lab):
                    current_submission["passed"].append(tc[0])
                 else:
                     student_output = ""
-                    if len(cprocess.stdout) == 0:
+                    if cprocess.returncode != 0:
                         student_output = "RUNTIME_ERROR"
                     else:
                         student_output = cprocess.stdout
