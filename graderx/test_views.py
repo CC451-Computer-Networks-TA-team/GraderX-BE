@@ -77,7 +77,7 @@ def test_status_file_unsupported(client):
 
 def test_status_failed_grading(monkeypatch, client):
     def mock_run_grader(lab_id, submissions_file):
-        return False
+        raise Exception
     
     monkeypatch.setattr(manager, "run_grader",mock_run_grader)
     lab_id = views.AVAILABLE_LABS[0]
