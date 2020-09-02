@@ -5,6 +5,7 @@ from pathlib import Path
 from .lib import helpers
 import os
 from .moss import moss
+from .stdout_graders.c.lib import submissions_extraction
 
 def get_courses_config():
     """
@@ -62,16 +63,14 @@ def add_submissions(course_name, lab, submissions_file):
     course_grader.add_submissions(course_name, lab, submissions_file)
     
 
-def apply_moss(submissions_file, form, course_name='moss_course', lab='moss_lab'):
+def apply_moss(submissions_file, moss_parameters, course_name='cc451', lab='lab3'):
     """
     All the possibly returned modules will have a add_submissions function that will be invoked here
     """
-    course_grader = select_course_grader(course_name)
-    course_grader.add_submissions(course_name, lab, submissions_file)
-    path_to_moss = course_grader.get_lab_path(course_name, lab)
-    form['files'] = path_to_moss
+    path_to_moss = Path(__file__).parent.joinpath('moss/submissions')
+    submissions_extraction.extract_submissions(path_to_moss, submissions_file)
     moss_ = moss.Moss()
-    moss_.set_config(form)
+    moss_.set_config(moss_parameters, path_to_moss)
     response = moss_.get_result()
     return response
 

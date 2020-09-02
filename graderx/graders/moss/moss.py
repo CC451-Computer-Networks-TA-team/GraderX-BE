@@ -1,42 +1,38 @@
 import glob 
 import subprocess
+from pathlib import Path
 
 class Moss:
     def __init__(self):
         self.config = {}
         self.config['m'] = "10"
         self.config['l'] = "c"
-        # self.config['d'] = "false"
-        self.config['x'] = "0"
-        self.config['c'] = ""
         self.config['n'] = "250"
-        self.config['bindex'] = "0"
-        self.config['files'] = []
     
-    def set_config(self, settings):
+    def set_config(self, settings, files_path):
         for key in settings:
-            self.config[key] = settings[key]
+            try:
+                self.config[key] = settings[key]
+            except:
+                pass
+        self.files_path = files_path
     
     def get_config(self):
         return self.config
 
     def get_command(self):
-        command = ['perl', 'moss.pl']
-        input_name = []
+        command = ['perl', str(Path(__file__).parent.joinpath('moss.pl'))]
         for key in self.config:
             if key != 'files':
                 command.append('-' + key)
                 command.append(self.config[key])
-            else:
-                for file_name in self.config[key]:
-                    input_name.append(file_name)
 
         actual_files = []
-        for dicr in input_name:
-            files = glob.glob(dicr + '/**/*', recursive = True) 
-            actual_files.extend(files)
+        files = glob.glob(str(self.files_path.resolve()) + '/**/*', recursive = True) 
+        actual_files.extend(files)
 
         command.extend(actual_files)
+        print(" ".join(command))
         return command
         
     def get_result(self):
