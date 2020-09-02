@@ -67,9 +67,14 @@ def run_grader(course, lab):
                 if(len(differences) == 0):
                    current_submission["passed"].append(tc[0])
                 else:
+                    student_output = ""
+                    if len(cprocess.stdout) == 0:
+                        student_output = "RUNTIME_ERROR"
+                    else:
+                        student_output = cprocess.stdout
                     current_submission["failed"].append({
                         "tc_id": tc[0],
-                        "output": cprocess.stdout,
+                        "output": student_output,
                         "expected": tc[2]
                     })
             submission_result_list.append(current_submission)
