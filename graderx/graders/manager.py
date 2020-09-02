@@ -4,6 +4,7 @@ from .unittest_graders.pytest import pytest_grader
 from pathlib import Path
 from .lib import helpers
 import os
+from .moss import moss
 
 def get_courses_config():
     """
@@ -59,6 +60,22 @@ def add_submissions(course_name, lab, submissions_file):
     """
     course_grader = select_course_grader(course_name)
     course_grader.add_submissions(course_name, lab, submissions_file)
+    
+
+def apply_moss(submissions_file, form, course_name='moss_course', lab='moss_lab'):
+    """
+    All the possibly returned modules will have a add_submissions function that will be invoked here
+    """
+    course_grader = select_course_grader(course_name)
+    course_grader.add_submissions(course_name, lab, submissions_file)
+    path_to_moss = course_grader.get_lab_path(course_name, lab)
+    form['files']=path_to_moss
+    moss_ = moss.Moss()
+    moss_.set_config(form)
+    response = moss_.get_result()
+    return response
+
+
 
 
 def save_single_submission(course_name, lab, file_in_memory, filename):
