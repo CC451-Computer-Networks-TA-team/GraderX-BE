@@ -17,9 +17,10 @@ def get_id_from_url(url):
 
 
 class ImportSubmissions(ABC):
-    def __init__(self, access_token, spreadsheet_link, destination_lab=None, field=None):
+    def __init__(self, access_token, spreadsheet_link, course=None, destination_lab=None, field=None):
         self.credentials = self.authorize(access_token)
         self.sheet = self.open_sheet(self.credentials, spreadsheet_link)
+        self.course = course
         self.destination_lab = destination_lab
         self.field = field
         super().__init__()
@@ -105,8 +106,7 @@ class GoogleImportSubmissions(ImportSubmissions):
         """
         # Clean the destination submissions directory
         curr_dir = str(Path(__file__).parent.resolve())
-        manager.clean_directory(Path(
-            f"{curr_dir}/courses/cc451/app/{self.destination_lab}/submissions/2020"))
+        manager.clear_submissions(self.course, self.destination_lab)
         if self.field:
             uploads_column = self.sheet.row_values(1).index(self.field)
             sheet_uploads_col = self.sheet.col_values(uploads_column+1)
@@ -131,7 +131,7 @@ class GoogleImportSubmissions(ImportSubmissions):
 
         file_name = drive_service.files().get(
             fileId=file_id).execute()['name']
-        manager.save_single_submission(self.destination_lab,
+        manager.save_single_submission(self.course, self.destination_lab,
                                        file_in_memory, file_name)
 
 
