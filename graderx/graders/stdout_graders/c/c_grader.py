@@ -8,6 +8,7 @@ from .lib import compile_submission as compiler
 from .lib import compute_results as compute_results
 from .lib import test_cases_parser as tc_parser
 from .lib.submissions_extraction import extract_submissions, clean_directory
+import json
 
 
 def get_lab_path(course, lab):
@@ -38,7 +39,7 @@ def run_grader(course, lab):
     """
     LAB_ABS_PATH = get_lab_path(course, lab)
     test_cases = tc_parser.get_test_cases(LAB_ABS_PATH)
-    submission_result_dict = {}
+    submission_result_list = []
 
     # Looping over all the submissions in [lab_path/submissions/] directory, first compile the submission
     # then loop over all test_cases for this lab, run the compiled submissions with stdin of the test case input
@@ -50,7 +51,8 @@ def run_grader(course, lab):
                 LAB_ABS_PATH.joinpath(f"submissions")) + f"/{i}"
             compiler.compile_submission(Path(submission_dir))
 
-            submission_result_dict[i] = {
+            current_submission = {
+                "id": i,
                 "passed": [],
                 "failed": []
             }
@@ -63,14 +65,17 @@ def run_grader(course, lab):
                 for line in difflib.context_diff(cprocess.stdout, tc[2]):
                     differences += line + "\n"
                 if(len(differences) == 0):
-                    submission_result_dict[i]["passed"].append(tc[0])
+                   current_submission["passed"].append(tc[0])
                 else:
-                    submission_result_dict[i]["failed"].append({
+                    current_submission["failed"].append({
                         "tc_id": tc[0],
-                        "diff": differences
+                        "output": cprocess.stdout,
+                        "expected": tc[2]
                     })
+            submission_result_list.append(current_submission)
+                
     # compute_total_result will take the results dict then create results files in the lab's directory
-    compute_results.compute_total_result(submission_result_dict, LAB_ABS_PATH)
+    compute_results.compute_total_result(submission_result_list, LAB_ABS_PATH)
 
 
 def add_submissions(course, lab, submissions_file):
@@ -103,3 +108,12 @@ def results_to_download(course, lab):
     """
     lab_path = get_lab_path(course, lab)
     return list(lab_path.glob("**/*_results.txt")) + list(lab_path.glob("**/*_result_summary.txt"))
+
+
+def get_diff_results_file(course_name, lab):
+    path = Path("graderx").joinpath("graders").joinpath(
+        "courses").joinpath(course_name).joinpath("labs").joinpath(lab)
+    file_path = path.joinpath(f"{lab}_diff_result.json")
+    with open(file_path) as f:
+        data = json.load(f)
+    return data
