@@ -112,6 +112,7 @@ def write_diff_json(submissions_list, path):
 
 
 def write_chart_json(submissions_list, path, grades_summary):
+    
     chart_json = get_charts_json(submissions_list, grades_summary)
     file_name = path.joinpath(f'{get_lab_name(path)}_chart_result.json')
     if not os.path.exists(path):
@@ -122,16 +123,16 @@ def write_chart_json(submissions_list, path, grades_summary):
 
 
 def get_charts_json(submissions_list, grades_summary):
-
+    grades_dict = {m:v for k,v in grades_summary.items() for m in k.split("_") }
     # passed test cases
     passed = [i.get('passed') for i in submissions_list]
     passed = [item for l in passed for item in l]
-    passed_list = [{"tc_id": k, "pass-percentage": passed.count(k)/len(grades_summary)*100}
+    passed_list = [{"tc_id": k, "pass-percentage": passed.count(k)/len(grades_dict)*100}
                    for k in list(set(passed))]
 
     # students pass percentage
     students_list = [{"id": k, "grade": v}
-                     for k, v in grades_summary.items()]
+                     for k, v in grades_dict.items()]
     chart = {
         'passed_tc': passed_list,
         'students_list': students_list
