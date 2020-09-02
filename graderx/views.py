@@ -160,8 +160,8 @@ def get_results():
 
     elif results_type == "diff":
         # change it to (test_course)
-        if course_name == "cc451":
-
+        if course_name == "test_course":
+            #return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
             try:
                 return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
                 # return jsonify(manager.get_diff_results_file(course_name, lab_name)), 200
@@ -172,7 +172,7 @@ def get_results():
     else:
         return jsonify({
             'status': "Failed to fetch results, please make sure you run the grader first"
-        }), 400
+        }), 500
 
 
 @app.route('/submissions/validate', methods=['POST'])

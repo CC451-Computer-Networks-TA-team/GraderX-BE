@@ -112,7 +112,7 @@ def results_to_download(course, lab):
 
 def get_diff_results_file(course_name, lab):
     path = Path("graderx").joinpath("graders").joinpath(
-        "courses").joinpath(course_name).joinpath(lab)
+        "courses").joinpath(course_name).joinpath("labs").joinpath(lab)
     file_path = path.joinpath(f"{lab}_diff_result.json")
     with open(file_path) as f:
         data = json.load(f)
