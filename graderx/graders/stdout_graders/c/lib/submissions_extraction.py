@@ -12,13 +12,13 @@ def clean_directory(dir):
             f.unlink()
 
 
-def extract_file(file_path, verbosity=-1):
+def extract_file(file_path, verbosity = -1):
     patoolib.extract_archive(
-        file_path, outdir=file_path.parent, verbosity=verbosity)
+        file_path, outdir=file_path.parent, verbosity = verbosity)
     os.remove(file_path)
 
 
-def extract_submissions(dest_directory, submissions_file,  verbosity=0):
+def extract_submissions(dest_directory, submissions_file,  verbosity = 0):
     """
     Args:
     dest_directory: Path. Submission directory found in [lab_name]/config.py
@@ -37,7 +37,7 @@ def extract_submissions(dest_directory, submissions_file,  verbosity=0):
     if dest_directory.exists():
         clean_directory(dest_directory)
     else:
-        dest_directory.mkdir(parents=True)
+        dest_directory.mkdir(parents = True)
 
     submissions_file.save(dst=(dest_directory.joinpath(file_name)))
     file_path = dest_directory.joinpath(file_name)
