@@ -44,11 +44,11 @@ class Moss:
         command = self.get_command()
         opt = subprocess.run(command, capture_output = True)
         
-        result['err'] = opt.stderr.decode("utf-8")
+        result['error_message'] = opt.stderr.decode("utf-8")
         if opt.stderr.decode("utf-8") == '':
-            result['status'] = 'OK'
+            result['status'] = 200
         else:
-            result['status'] = 'FAILED'
+            result['status'] = 400
 
         opt = opt.stdout.decode("utf-8").split('\n')
         result['url'] = opt[len(opt) -2]

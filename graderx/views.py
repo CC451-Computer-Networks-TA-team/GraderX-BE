@@ -130,11 +130,9 @@ def add_submissions():
         if allowed_file(submissions_file.filename):
             # TODO: secure filename
             try:
-                manager.apply_moss(
+                res = manager.apply_moss(
                     submissions_file, request.form)
-                return jsonify({
-                    'status': UPLOAD_STATUS.SUCCESS.value
-                }), 200
+                return jsonify(res), 200
             except:
                 return jsonify({
                     'status': UPLOAD_STATUS.GRADER_FAILED.value
