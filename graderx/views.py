@@ -114,6 +114,33 @@ def add_submissions():
             return jsonify({
                 'status': UPLOAD_STATUS.UNSUPPORTED_FILE.value
             }), 400
+    elif method =="file-moss":
+        if 'submissions_file' not in request.files:
+            return jsonify({'status': UPLOAD_STATUS.FILE_NOT_INCLUDED.value}), 400
+        submissions_file = request.files['submissions_file']
+        if submissions_file.filename == '':
+            return jsonify({
+                'status': UPLOAD_STATUS.FILE_NOT_SELECTED.value
+            }), 400
+        # submissions_file will be falsy if the file is empty
+        if not submissions_file:
+            return jsonify({
+                'status': UPLOAD_STATUS.FILE_EMPTY.value
+            }), 400
+        if allowed_file(submissions_file.filename):
+            # TODO: secure filename
+            # try:
+            res = manager.apply_moss(
+                submissions_file, request.form)
+            return jsonify(res), 200
+            # except:
+            #     return jsonify({
+            #         'status': UPLOAD_STATUS.GRADER_FAILED.value
+            #     }), 500
+        else:
+            return jsonify({
+                'status': UPLOAD_STATUS.UNSUPPORTED_FILE.value
+            }), 400
     elif method == "import-google":
         access_token = request.json['accessToken']
         sheet_link = request.json['sheetLink']
