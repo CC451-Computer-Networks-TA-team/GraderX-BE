@@ -43,7 +43,7 @@ def get_labs(course_name):
     """
     Responds with with a list of labs for the specified course
     Example:GET /courses/cc451/labs
-    Response body: {"labs": ["lab1_client", "lab1_server", "lab3", "lab4"]}  
+    Response body: {"labs": ["lab1_client", "lab1_server", "lab3", "lab4"]}
     """
     return jsonify({"labs": manager.get_labs(course_name)})
 
@@ -122,7 +122,19 @@ def add_submissions():
             importer = import_submissions.GoogleImportSubmissions(
                 access_token, sheet_link, course_name, lab_name, request.args.get('field'))
         else:
-            importer = import_submissions.GoogleImportSubmissions(
+            importer = import_submissions.MSImportSubmissions(
+                access_token, sheet_link, course_name, lab_name)
+        try:
+            importer.import_submissions()
+            return "SUCCESS", 200
+        except:
+            # TODO: handle detectable exceptions
+            return "Failed to import submissions", 500
+
+    elif method == "import-ms":
+        access_token = request.json['accessToken']
+        sheet_link = request.json['sheetLink']     
+        importer = import_submissions.MSImportSubmissions(
                 access_token, sheet_link, course_name, lab_name)
         try:
             importer.import_submissions()
@@ -182,19 +194,34 @@ def validate_import_source():
     """
     access_token = request.json['accessToken']
     sheet_link = request.json['sheetLink']
-    try:
-        importer = import_submissions.GoogleImportSubmissions(
-            access_token, sheet_link)
-    except:
-        # TODO: handle detectable exceptions
-        return "Invalid sheet link", 400
-    try:
-        importer.only_one_uploads_column()
-        return "SUCCESS", 200
-    except import_submissions.TooManyUploadColumnsError as e:
-        fields = importer.get_url_fields()
-        return jsonify({'msg': str(e), 'fields': fields}), 400
-    except import_submissions.InvalidSheetError as e:
-        return str(e), 400
-    except:
-        return "An unexpected error occured", 500
+    method = request.json['method']
+    
+
+    if method == 'import-google':
+
+        try:
+            importer = import_submissions.GoogleImportSubmissions(
+                access_token, sheet_link)
+        except:
+            # TODO: handle detectable exceptions
+            return "Invalid sheet link", 400
+        try:
+            importer.only_one_uploads_column()
+            return "SUCCESS", 200
+        except import_submissions.TooManyUploadColumnsError as e:
+            fields = importer.get_url_fields()
+            return jsonify({'msg': str(e), 'fields': fields}), 400
+        except import_submissions.InvalidSheetError as e:
+            return str(e), 400
+        except:
+            return "An unexpected error occured", 500
+    elif method == 'import-ms':
+        try:
+            importer = import_submissions.MSImportSubmissions(
+                access_token, sheet_link)
+            return "SUCCESS", 200
+
+        except:
+            # TODO: handle detectable exceptions
+            return "Invalid sheet link", 400
+
