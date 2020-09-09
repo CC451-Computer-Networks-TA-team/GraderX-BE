@@ -22,9 +22,11 @@ def allowed_file(filename):
 @app.route('/create_course', methods=['POST'])
 def create_course():
     """
-    Takes 1 query parameter1 "course" then calls the create_course of the manager
-    which determine the corresponding grader to run
-    Example:GET /run_grader?course=cc451&lab=lab3
+    Takes a json object that has the needed data: 
+        1- courseName: new course name
+        2- langugae: Programming language to be used with this course labs
+        3- labs: An object that has the test cases to be runned, time limit for each test case
+        4- course type: type of grader to be used with this course (unit testing / stdout cases comparison)
     """
     try:
         courseName = request.json['courseName']
