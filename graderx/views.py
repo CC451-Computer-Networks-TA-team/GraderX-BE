@@ -19,6 +19,24 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@app.route('/create_course', methods=['POST'])
+def create_course():
+    """
+    Takes 1 query parameter1 "course" then calls the create_course of the manager
+    which determine the corresponding grader to run
+    Example:GET /run_grader?course=cc451&lab=lab3
+    """
+    try:
+        courseName = request.json['courseName']
+        language = request.json['language']
+        labs = request.json['labs']
+    except KeyError:
+        return jsonify({'status': "course name, language, and labs parameters must be included"}), 400
+    try:
+        manager.create_course(courseName, language, labs)
+        return "SUCCESS", 200
+    except:
+        return "Failed to run the grader", 500
 
 class UPLOAD_STATUS(Enum):
     """

@@ -4,8 +4,11 @@ from .unittest_graders.pytest import pytest_grader
 from pathlib import Path
 from .lib import helpers
 import os
+from pprint import pprint
 from .moss import moss
 from .stdout_graders.c.lib import submissions_extraction
+from .stdout_graders.stdout_common import stdout_common
+    
 
 def get_courses_config():
     """
@@ -14,6 +17,8 @@ def get_courses_config():
     with open(Path(__file__).parent.joinpath("courses_config.json")) as f:
         return json.load(f)
 
+def create_course(course_name, language, labs):    
+    stdout_common.create_course(course_name, language, labs, get_courses())
 
 def get_courses():
     return list(get_courses_config().keys())
@@ -49,10 +54,10 @@ def run_grader(course_name, lab):
     course_grader = select_course_grader(course_name)
     course_grader.run_grader(course_name, lab)
 
+
 def run_grader_diff(course_name, lab):
     course_grader = select_course_grader(course_name)
     return course_grader.get_diff_results_file(course_name, lab)
-
 
 
 def add_submissions(course_name, lab, submissions_file):
@@ -73,8 +78,6 @@ def apply_moss(submissions_file, moss_parameters, course_name='cc451', lab='lab3
     moss_.set_config(moss_parameters, path_to_moss)
     response = moss_.get_result()
     return response
-
-
 
 
 def save_single_submission(course_name, lab, file_in_memory, filename):
