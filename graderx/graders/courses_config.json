@@ -17,5 +17,23 @@
       "lab2",
       "lab3"
     ]
+  },
+  "new_course": {
+    "course_type": "stdout",
+    "language": "C++",
+    "labs": [
+      {
+        "name": "Lab",
+        "runtime": "4",
+        "disable_internet": true,
+        "test_cases": [
+          {
+            "tc_id": "1",
+            "input": "tc_in_str",
+            "output": "tc_out_str"
+          }
+        ]
+      }
+    ]
   }
 }
