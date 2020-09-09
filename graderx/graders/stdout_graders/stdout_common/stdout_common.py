@@ -18,19 +18,8 @@ def create_course_data(course_name, labs):
         path.mkdir()
         path = path / 'test_cases'
         path.mkdir()
-        # pre_tc = path
         for tc in lab['test_cases']:
             add_test_case_file(path, f"{tc['tc_id']}_in", tc['input'])
             add_test_case_file(path, f"{tc['tc_id']}_out", tc['output'])
-            # path = Path(path, f"{tc['tc_id']}_in")
-            # path.touch()
-            # with path.open('w') as wf:
-            #     wf.write(tc['input'])
-            # path = pre_tc
-            # path = Path(path, f"{tc['tc_id']}_out")
-            # path.touch()
-            # with path.open('w') as wf:
-            #     wf.write(tc['output'])
-            # path = pre_tc
         path = dir_path
 
