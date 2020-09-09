@@ -23,14 +23,31 @@
     "language": "C++",
     "labs": [
       {
-        "name": "Lab",
+        "name": "Lab1",
         "runtime": "4",
         "disable_internet": true,
         "test_cases": [
           {
             "tc_id": "1",
-            "input": "tc_in_str",
-            "output": "tc_out_str"
+            "input": "tc1_in_str",
+            "output": "tc1_out_str"
+          },
+          {
+            "tc_id": "2",
+            "input": "tc2_in_str",
+            "output": "tc2_out_str"
+          }
+        ]
+      },
+      {
+        "name": "Lab2",
+        "runtime": "3",
+        "disable_internet": false,
+        "test_cases": [
+          {
+            "tc_id": "3",
+            "input": "tc3_in_str",
+            "output": "tc3_out_str"
           }
         ]
       }
