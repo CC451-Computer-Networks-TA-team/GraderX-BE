@@ -19,7 +19,7 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/create_course', methods=['POST'])
+@app.route('/course', methods=['POST'])
 def create_course():
     """
     Takes a json object that has the needed data: 
