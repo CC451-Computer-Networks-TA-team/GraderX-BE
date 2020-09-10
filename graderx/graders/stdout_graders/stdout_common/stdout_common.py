@@ -4,8 +4,8 @@ import json
 def add_test_case_file(path, tc_name, data):
     path = Path(path, tc_name)
     path.touch()
-    with path.open('w') as wf:
-        wf.write(data)
+    with path.open('w') as write_file:
+        write_file.write(data)
 
 def create_course_data(course_name, labs):
     path = Path(__file__).parent.parent.parent.joinpath("courses") / course_name
