@@ -6,6 +6,8 @@ from .lib import helpers
 import os
 from .moss import moss
 from .stdout_graders.c.lib import submissions_extraction
+from .stdout_graders.stdout_common import stdout_common
+    
 
 def get_courses_config():
     """
@@ -13,6 +15,24 @@ def get_courses_config():
     """
     with open(Path(__file__).parent.joinpath("courses_config.json")) as f:
         return json.load(f)
+
+
+def add_new_course_to_current_courses(data):
+    with open(Path(__file__).parent.joinpath("courses_config.json"), 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def create_course(course_name, language, labs):
+    current_courses = get_courses() 
+    for course in current_courses:
+        if course.lower() == course_name.lower():
+            return "Course already present", 404
+    current_courses = get_courses_config()
+    stdout_common.create_course_data(course_name, labs)
+    for index, lab in enumerate(labs):
+        del labs[index]['test_cases']
+    current_courses[course_name] = {"type": "stdout", "variant": language, "labs": labs}
+    add_new_course_to_current_courses(current_courses)
 
 
 def get_courses():
@@ -49,10 +69,10 @@ def run_grader(course_name, lab):
     course_grader = select_course_grader(course_name)
     course_grader.run_grader(course_name, lab)
 
+
 def run_grader_diff(course_name, lab):
     course_grader = select_course_grader(course_name)
     return course_grader.get_diff_results_file(course_name, lab)
-
 
 
 def add_submissions(course_name, lab, submissions_file):
@@ -73,8 +93,6 @@ def apply_moss(submissions_file, moss_parameters, course_name='cc451', lab='lab3
     moss_.set_config(moss_parameters, path_to_moss)
     response = moss_.get_result()
     return response
-
-
 
 
 def save_single_submission(course_name, lab, file_in_memory, filename):
