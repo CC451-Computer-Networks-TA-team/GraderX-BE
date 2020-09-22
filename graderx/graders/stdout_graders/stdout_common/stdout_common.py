@@ -19,7 +19,7 @@ def create_course_data(course_name, labs):
         path = path / 'test_cases'
         path.mkdir()
         for tc in lab['test_cases']:
-            add_test_case_file(path, f"{tc['tc_id']}_in", tc['input'])
-            add_test_case_file(path, f"{tc['tc_id']}_out", tc['output'])
+            add_test_case_file(path, f"{tc['id']}_in", tc['input'])
+            add_test_case_file(path, f"{tc['id']}_out", tc['output'])
         path = dir_path
 

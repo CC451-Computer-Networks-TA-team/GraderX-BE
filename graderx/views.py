@@ -29,8 +29,8 @@ def create_course():
         4- course type: type of grader to be used with this course (unit testing / stdout cases comparison)
     """
     try:
-        courseName = request.json['courseName']
-        language = request.json['language']
+        courseName = request.json['name']
+        language = request.json['variant']
         labs = request.json['labs']
     except KeyError:
         return jsonify({'status': "course name, language, and labs parameters must be included"}), 400
@@ -38,7 +38,7 @@ def create_course():
         manager.create_course(courseName, language, labs)
         return "SUCCESS", 200
     except:
-        return "Failed to run the grader", 500
+        return "An error occured", 500
 
 class UPLOAD_STATUS(Enum):
     """

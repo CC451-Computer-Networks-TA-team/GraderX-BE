@@ -4,7 +4,6 @@ from .unittest_graders.pytest import pytest_grader
 from pathlib import Path
 from .lib import helpers
 import os
-from pprint import pprint
 from .moss import moss
 from .stdout_graders.c.lib import submissions_extraction
 from .stdout_graders.stdout_common import stdout_common
@@ -29,9 +28,11 @@ def create_course(course_name, language, labs):
         if course.lower() == course_name.lower():
             return "Course already present", 404
     current_courses = get_courses_config()
-    current_courses[course_name] = {"course_type": "stdout", "language": language, "labs": labs}
-    add_new_course_to_current_courses(current_courses)
     stdout_common.create_course_data(course_name, labs)
+    for index, lab in enumerate(labs):
+        del labs[index]['test_cases']
+    current_courses[course_name] = {"type": "stdout", "variant": language, "labs": labs}
+    add_new_course_to_current_courses(current_courses)
 
 
 def get_courses():
