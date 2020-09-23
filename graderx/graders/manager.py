@@ -149,8 +149,8 @@ def update_course_data(course_id, new_course_data):
     courses_config = get_courses_config()
     if course_id not in courses_config:
         raise CourseNotFoundError
-    for index, lab in enumerate(new_course_data['labs']):
-        # stdout_common.update_test_cases(course_id, lab['name'], lab['test_cases'])
+    stdout_common.create_course_data(course_id, new_course_data['labs'])
+    for index, _ in enumerate(new_course_data['labs']):
         del new_course_data['labs'][index]['test_cases']
     del new_course_data['name']
     courses_config[course_id] = new_course_data

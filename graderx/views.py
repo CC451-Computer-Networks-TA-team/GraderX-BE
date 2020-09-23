@@ -197,6 +197,8 @@ def edit_course(course_id):
         course_data = manager.get_course_data(course_id)
     except manager.CourseNotFoundError:
         return jsonify({"status": "Course Not Found"}), 404
+    except:
+        return "An error occured", 500
     return jsonify(course_data)
 
 
@@ -206,6 +208,8 @@ def update_course(course_id):
         manager.update_course_data(course_id, request.json)
     except manager.CourseNotFoundError:
         return jsonify({"status": "Course Not Found"}), 404
+    except:
+        return "An error occured", 500
     return jsonify({"status": "Course updated successfuly"})
 
 
