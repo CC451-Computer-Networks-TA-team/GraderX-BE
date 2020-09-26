@@ -16,6 +16,13 @@ def get_courses_config():
     with open(Path(__file__).parent.joinpath("courses_config.json")) as f:
         return json.load(f)
 
+def update_course_config(course_config_dict):
+    """
+    Takes a dict and replaces the current courses_config with it
+    """
+    with open(Path(__file__).parent.joinpath("courses_config.json"), "w") as f:
+        json.dump(course_config_dict, f)
+
 
 def add_new_course_to_current_courses(data):
     with open(Path(__file__).parent.joinpath("courses_config.json"), 'w', encoding='utf-8') as f:
@@ -40,7 +47,7 @@ def get_courses():
 
 
 def get_labs(course_name):
-    return get_courses_config()[course_name]['labs']
+    return [lab["name"] for lab in get_courses_config()[course_name]['labs']]
 
 
 def select_course_grader(course_name):
@@ -128,5 +135,34 @@ def get_diff_results_file(course_name, lab):
      
     return data
 
+def get_course_data(course_id):
+    try:
+        course_data = get_courses_config()[course_id]
+    except KeyError:
+        raise CourseNotFoundError()
+    for index, lab in enumerate(course_data['labs']):
+        course_data['labs'][index]["test_cases"] = stdout_common.get_test_cases(course_id, lab["name"])
+    course_data['name'] = course_id
+    return course_data
+
+def update_course_data(course_id, new_course_data):
+    courses_config = get_courses_config()
+    if course_id not in courses_config:
+        raise CourseNotFoundError
+    stdout_common.create_course_data(course_id, new_course_data['labs'])
+    for index, _ in enumerate(new_course_data['labs']):
+        del new_course_data['labs'][index]['test_cases']
+    del new_course_data['name']
+    courses_config[course_id] = new_course_data
+    update_course_config(courses_config)
+
+
 class InvalidConfigError(Exception):
+    pass
+
+
+class CourseNotFoundError(Exception):
+    pass
+
+class SubmissionNotFoundError(Exception):
     pass

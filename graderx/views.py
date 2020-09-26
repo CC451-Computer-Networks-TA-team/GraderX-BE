@@ -191,6 +191,28 @@ def add_submissions():
             return "Failed to import submissions", 500
 
 
+@app.route('/courses/<course_id>/edit', methods=["GET"])
+def edit_course(course_id):
+    try:
+        course_data = manager.get_course_data(course_id)
+    except manager.CourseNotFoundError:
+        return jsonify({"status": "Course Not Found"}), 404
+    except:
+        return "An error occured", 500
+    return jsonify(course_data)
+
+
+@app.route('/courses/<course_id>', methods=["PUT"])
+def update_course(course_id):
+    try:
+        manager.update_course_data(course_id, request.json)
+    except manager.CourseNotFoundError:
+        return jsonify({"status": "Course Not Found"}), 404
+    except:
+        return "An error occured", 500
+    return jsonify({"status": "Course updated successfuly"})
+
+
 @app.route('/results')
 def get_results():
     """
@@ -232,6 +254,9 @@ def get_results():
         return jsonify({
             'status': "Failed to fetch results, please make sure you run the grader first"
         }), 500
+
+
+
 
 
 @app.route('/submissions/validate', methods=['POST'])
