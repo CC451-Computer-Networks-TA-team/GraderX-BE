@@ -55,7 +55,7 @@ class UPLOAD_STATUS(Enum):
 
 @app.route('/courses')
 def get_courses():
-    return jsonify({"courses": manager.get_courses()})
+    return jsonify({"courses": manager.get_all_courses_data()})
 
 
 @app.route('/courses/<course_name>/labs')
@@ -65,7 +65,11 @@ def get_labs(course_name):
     Example:GET /courses/cc451/labs
     Response body: {"labs": ["lab1_client", "lab1_server", "lab3", "lab4"]}
     """
-    return jsonify({"labs": manager.get_labs(course_name)})
+    try:
+        labs = manager.get_all_labs_data(course_name)
+        return jsonify({"labs": labs}) 
+    except manager.CourseNotFoundError:
+        return jsonify({"status": "Course Not Found"}), 404
 
 
 @app.route('/run_grader')
@@ -194,7 +198,7 @@ def add_submissions():
 @app.route('/courses/<course_id>/edit', methods=["GET"])
 def edit_course(course_id):
     try:
-        course_data = manager.get_course_data(course_id)
+        course_data = manager.get_course_data_with_test_cases(course_id)
     except manager.CourseNotFoundError:
         return jsonify({"status": "Course Not Found"}), 404
     except:

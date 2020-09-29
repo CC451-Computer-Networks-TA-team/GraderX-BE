@@ -135,14 +135,30 @@ def get_diff_results_file(course_name, lab):
      
     return data
 
+
+def get_all_courses_data():
+    all_courses = get_courses_config()
+    for course_id, course_data in all_courses.items():
+        course_data['name'] = course_id
+    return list(all_courses.values())
+
+def get_all_labs_data(course_id):
+    course_labs = get_course_data(course_id)['labs']
+    return course_labs
+
 def get_course_data(course_id):
     try:
         course_data = get_courses_config()[course_id]
     except KeyError:
         raise CourseNotFoundError()
+    course_data['name'] = course_id
+    return course_data
+
+
+def get_course_data_with_test_cases(course_id):
+    course_data = get_course_data(course_id)
     for index, lab in enumerate(course_data['labs']):
         course_data['labs'][index]["test_cases"] = stdout_common.get_test_cases(course_id, lab["name"])
-    course_data['name'] = course_id
     return course_data
 
 def update_course_data(course_id, new_course_data):
