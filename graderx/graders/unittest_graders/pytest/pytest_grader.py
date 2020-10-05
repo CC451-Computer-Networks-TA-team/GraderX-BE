@@ -117,3 +117,22 @@ def get_submission_file_content(course, lab, submission_id, file_name):
     submission_path = get_lab_path(course, lab).joinpath(f'submissions/2020/')
     submission_file = open(submission_path.joinpath(file_name))
     return submission_file.read()
+
+def get_not_fullmark_submissions(course, lab):
+    lab_path = get_lab_path(course, lab)
+    submissions_path = lab_path.joinpath('submissions/2020')
+    grades_file_path = get_course_root(course).joinpath(f'res/{lab}')
+    with open(grades_file_path) as grades_file:
+        not_fullmark_students_with_grades = grades_file.readlines()
+    not_fullmark_students = []
+    for student in not_fullmark_students_with_grades:
+        if float(student.split(',')[1]) < 1:
+            not_fullmark_students.append(student.split(',')[0])
+    all_submissions_names = [sfile.name for sfile in submissions_path.glob('*.py')]
+    not_fullmark_submissions = set()
+    # TODO: Improve performance
+    for student in not_fullmark_students:
+        for submission_name in all_submissions_names:
+            if student in submission_name:
+                not_fullmark_submissions.add(submission_name)
+    return list(not_fullmark_submissions)

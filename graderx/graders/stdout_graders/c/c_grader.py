@@ -136,3 +136,10 @@ def get_submission_file_content(course, lab, submission_id, file_name):
     submission_path = get_lab_path(course, lab).joinpath(f'submissions/{submission_id}')
     submission_file = open(submission_path.joinpath(file_name))
     return submission_file.read()
+
+def get_not_fullmark_submissions(course, lab):
+    lab_path = get_lab_path(course, lab)
+    file_path = lab_path.joinpath(f"{lab}_diff_result.json")
+    with open(file_path) as diff_file:
+        diff_dict = json.load(diff_file)
+    return [submission['id'] for submission in diff_dict]

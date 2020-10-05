@@ -133,6 +133,11 @@ def get_submission_file_content(course, lab, submission_id, file_name):
     except FileNotFoundError:
         raise SubmissionFileNotFoundError
 
+def get_submissions_list(course, lab):
+    course_grader = select_course_grader(course)
+    submissions_list = course_grader.get_not_fullmark_submissions(course, lab)
+    return submissions_list
+
 class InvalidConfigError(Exception):
     pass
 

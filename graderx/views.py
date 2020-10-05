@@ -252,22 +252,28 @@ def validate_import_source():
             # TODO: handle detectable exceptions
             return "Invalid sheet link", 400
 
+
+
+
 @app.route('/submissions', methods=["GET"])
 def get_submission_files():
     try:
         course_name = request.args['course']
         lab_name = request.args['lab']
-        submission_id = request.args['submission_id']
     except KeyError:
         return jsonify({'status': "course, lab and submission_id query parameters must be included"}), 400
-    try:
-        files_list = manager.get_submission_files(course_name, lab_name, submission_id)
-        return jsonify(files_list)
-    except manager.SubmissionNotFoundError:
-        return jsonify({'status': "Submission not found"}), 404
-    except:
-        return jsonify({'status': "An error occurred"}), 500
-    
+    if('submission_id' in request.args):
+        submission_id = request.args['submission_id']
+        try:
+            files_list = manager.get_submission_files(course_name, lab_name, submission_id)
+            return jsonify(files_list)
+        except manager.SubmissionNotFoundError:
+            return jsonify({'status': "Submission not found"}), 404
+        except:
+            return jsonify({'status': "An error occurred"}), 500
+    else:
+        submissions_list = manager.get_submissions_list(course_name, lab_name)
+        return jsonify(submissions_list)
 
 @app.route('/submission_file', methods=["GET"])
 def get_submission_file_content():
