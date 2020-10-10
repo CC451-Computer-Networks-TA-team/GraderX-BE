@@ -40,6 +40,17 @@ def create_course():
     except:
         return "An error occured", 500
 
+
+@app.route('/courses/<course_name>', methods=['DELETE'])
+def delete_course(course_name):
+    try:
+        manager.delete_course(course_name)
+        return "SUCCESS", 200
+    except manager.CourseNotFoundError:
+        return jsonify({"status": "Course Not Found"}), 404
+    except:
+        return "An error occured", 500
+
 class UPLOAD_STATUS(Enum):
     """
     Status messages sent to the client

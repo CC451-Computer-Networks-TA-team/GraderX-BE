@@ -172,6 +172,14 @@ def update_course_data(course_id, new_course_data):
     courses_config[course_id] = new_course_data
     update_course_config(courses_config)
 
+def delete_course(course_id):
+    courses_config = get_courses_config()
+    if course_id not in courses_config:
+        raise CourseNotFoundError
+    stdout_common.delete_course(course_id)
+    del courses_config[course_id]
+    update_course_config(courses_config)
+
 
 class InvalidConfigError(Exception):
     pass

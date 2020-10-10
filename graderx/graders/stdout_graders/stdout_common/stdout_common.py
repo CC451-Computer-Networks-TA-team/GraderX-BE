@@ -1,6 +1,7 @@
 from pathlib import Path
 import json
 from .lib import test_cases_parser as tc_parser
+import shutil
 
 
 def add_test_case_file(path, tc_name, data):
@@ -24,6 +25,13 @@ def get_lab_path(course, lab):
     return Path(__file__).joinpath(
         f'../../../courses/{course}/labs/{lab}').resolve()
 
+def get_course_path(course):
+    return Path(__file__).joinpath(
+        f'../../../courses/{course}').resolve()
+
 def get_test_cases(course, lab):    
     test_cases_tuples = tc_parser.get_test_cases(get_lab_path(course, lab))
     return [{"id": tc[0],"input": tc[1], "output": tc[2]} for tc in test_cases_tuples]
+
+def delete_course(course_name):
+    shutil.rmtree(str(get_course_path(course_name)))
