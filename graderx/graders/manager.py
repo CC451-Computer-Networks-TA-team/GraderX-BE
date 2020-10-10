@@ -176,7 +176,10 @@ def delete_course(course_id):
     courses_config = get_courses_config()
     if course_id not in courses_config:
         raise CourseNotFoundError
-    stdout_common.delete_course(course_id)
+    try:
+        stdout_common.delete_course(course_id)
+    except FileNotFoundError:
+        pass
     del courses_config[course_id]
     update_course_config(courses_config)
 
