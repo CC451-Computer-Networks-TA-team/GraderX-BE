@@ -134,5 +134,5 @@ def get_not_fullmark_submissions(course, lab):
     for student in not_fullmark_students:
         for submission_name in all_submissions_names:
             if student in submission_name:
-                not_fullmark_submissions.add(submission_name)
+                not_fullmark_submissions.add('.'.join(submission_name.split('.')[0:-1]))
     return list(not_fullmark_submissions)
