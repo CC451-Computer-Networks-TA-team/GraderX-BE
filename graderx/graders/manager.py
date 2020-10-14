@@ -16,6 +16,12 @@ def get_courses_config():
     with open(Path(__file__).parent.joinpath("courses_config.json")) as f:
         return json.load(f)
 
+def get_courses_config_if_course_exists(course_name):
+    courses_config = get_courses_config()
+    if course_name not in courses_config:
+        raise CourseNotFoundError
+    return courses_config
+
 def update_course_config(course_config_dict):
     """
     Takes a dict and replaces the current courses_config with it
@@ -35,10 +41,8 @@ def create_course(course_name, language, labs):
         if course.lower() == course_name.lower():
             return "Course already present", 404
     current_courses = get_courses_config()
-    stdout_common.create_course_data(course_name, labs)
-    for index, lab in enumerate(labs):
-        del labs[index]['test_cases']
-    current_courses[course_name] = {"type": "stdout", "variant": language, "labs": labs}
+    stdout_common.create_course_dir(course_name)
+    current_courses[course_name] = {"type": "stdout", "variant": language.lower(), "labs": []}
     add_new_course_to_current_courses(current_courses)
 
 
@@ -162,9 +166,7 @@ def get_course_data_with_test_cases(course_id):
     return course_data
 
 def update_course_data(course_id, new_course_data):
-    courses_config = get_courses_config()
-    if course_id not in courses_config:
-        raise CourseNotFoundError
+    courses_config = get_courses_config_if_course_exists(course_id)
     stdout_common.create_course_data(course_id, new_course_data['labs'])
     for index, _ in enumerate(new_course_data['labs']):
         del new_course_data['labs'][index]['test_cases']
@@ -173,9 +175,7 @@ def update_course_data(course_id, new_course_data):
     update_course_config(courses_config)
 
 def delete_course(course_id):
-    courses_config = get_courses_config()
-    if course_id not in courses_config:
-        raise CourseNotFoundError
+    courses_config = get_courses_config_if_course_exists(course_id)
     try:
         stdout_common.delete_course(course_id)
     except FileNotFoundError:
@@ -183,6 +183,24 @@ def delete_course(course_id):
     del courses_config[course_id]
     update_course_config(courses_config)
 
+def delete_lab(course_id, lab_id):
+    courses_config = get_courses_config_if_course_exists(course_id)
+    try:
+        stdout_common.delete_lab(course_id, lab_id)
+    except FileNotFoundError:
+        pass
+    courses_config[course_id]["labs"] = list(filter(lambda lab: lab['name'] != lab_id, courses_config[course_id]["labs"]))
+    update_course_config(courses_config)
+
+
+def add_lab(course_id, lab_data):
+    courses_config = get_courses_config_if_course_exists(course_id)
+    stdout_common.create_lab_dir(course_id, lab_data['name'])
+    if lab_data['test_cases']:
+        stdout_common.create_test_cases(course_id, lab_data['name'], lab_data['test_cases'])
+    del lab_data['test_cases']
+    courses_config[course_id]['labs'].append(lab_data)
+    update_course_config(courses_config)
 
 class InvalidConfigError(Exception):
     pass

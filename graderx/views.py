@@ -82,6 +82,27 @@ def get_labs(course_name):
     except manager.CourseNotFoundError:
         return jsonify({"status": "Course Not Found"}), 404
 
+@app.route('/courses/<course_name>/labs', methods=["POST"])
+def add_lab(course_name):
+    try:
+        manager.add_lab(course_name, request.json)
+        return "SUCCESS", 200
+    except manager.CourseNotFoundError:
+        return jsonify({"status": "Course Not Found"}), 404
+    except:
+        return "An error occured", 500
+    pass
+
+@app.route('/courses/<course_name>/labs/<lab_id>', methods=["DELETE"])
+def delete_lab(course_name, lab_id):
+    try:
+        manager.delete_lab(course_name, lab_id)
+        return "SUCCESS", 200
+    except manager.CourseNotFoundError:
+        return jsonify({"status": "Course Not Found"}), 404
+    except:
+        return "An error occured", 500
+
 
 @app.route('/run_grader')
 def start_grading():

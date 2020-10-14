@@ -9,17 +9,27 @@ def add_test_case_file(path, tc_name, data):
     with path.open('w') as write_file:
         write_file.write(data)
 
+def create_course_dir(course_name):
+    course_path = Path(__file__).joinpath(f"../../../courses/{course_name}").resolve()
+    course_path.mkdir(parents=True, exist_ok=True)
+
+def create_lab_dir(course, lab):
+    lab_path = Path(__file__).joinpath(f"../../../courses/{course}/labs/{lab}").resolve()
+    lab_path.mkdir(parents=True, exist_ok=True)
+
+
 def create_course_data(course_name, labs):
     labs_path = Path(__file__).joinpath(f"../../../courses/{course_name}/labs").resolve()
     for lab in labs:
         test_cases_path = labs_path.joinpath(f"{lab['name']}/test_cases")
         test_cases_path.mkdir(parents=True, exist_ok=True)
-        create_test_cases(test_cases_path, lab['test_cases'])
 
-def create_test_cases(path, test_cases):
+def create_test_cases(course, lab, test_cases):
+    test_cases_path = Path(__file__).joinpath(f"../../../courses/{course}/labs/{lab}/test_cases").resolve()
+    test_cases_path.mkdir(parents=True, exist_ok=True)
     for tc in test_cases:
-        add_test_case_file(path, f"{tc['id']}_in", tc['input'])
-        add_test_case_file(path, f"{tc['id']}_out", tc['output'])
+        add_test_case_file(test_cases_path, f"{tc['id']}_in", tc['input'])
+        add_test_case_file(test_cases_path, f"{tc['id']}_out", tc['output'])
 
 def get_lab_path(course, lab):
     return Path(__file__).joinpath(
@@ -35,3 +45,6 @@ def get_test_cases(course, lab):
 
 def delete_course(course_name):
     shutil.rmtree(str(get_course_path(course_name)))
+
+def delete_lab(course, lab):
+    shutil.rmtree(str(get_lab_path(course, lab)))
