@@ -31,6 +31,11 @@ def create_test_cases(course, lab, test_cases):
         add_test_case_file(test_cases_path, f"{tc['id']}_in", tc['input'])
         add_test_case_file(test_cases_path, f"{tc['id']}_out", tc['output'])
 
+def clear_test_cases(course, lab):
+    test_cases_path = Path(__file__).joinpath(f"../../../courses/{course}/labs/{lab}/test_cases").resolve()
+    if test_cases_path.exists():
+        shutil.rmtree(str(test_cases_path))
+
 def get_lab_path(course, lab):
     return Path(__file__).joinpath(
         f'../../../courses/{course}/labs/{lab}').resolve()
@@ -39,8 +44,11 @@ def get_course_path(course):
     return Path(__file__).joinpath(
         f'../../../courses/{course}').resolve()
 
-def get_test_cases(course, lab):    
-    test_cases_tuples = tc_parser.get_test_cases(get_lab_path(course, lab))
+def get_test_cases(course, lab):
+    lab_path = get_lab_path(course, lab)
+    if not lab_path.joinpath('test_cases').exists():
+        return []
+    test_cases_tuples = tc_parser.get_test_cases(lab_path)
     return [{"id": tc[0],"input": tc[1], "output": tc[2]} for tc in test_cases_tuples]
 
 def delete_course(course_name):

@@ -140,14 +140,18 @@ def get_diff_results_file(course_name, lab):
     return data
 
 
-def get_all_courses_data():
+def get_all_courses_data(only_stdout = False):
     all_courses = get_courses_config()
+    if only_stdout:
+        all_courses = {course_name:course_data for course_name,course_data in all_courses.items() if course_data['type'] == 'stdout'}
     for course_id, course_data in all_courses.items():
         course_data['name'] = course_id
     return list(all_courses.values())
 
 def get_all_labs_data(course_id):
     course_labs = get_course_data(course_id)['labs']
+    for index, lab in enumerate(course_labs):
+        course_labs[index]["test_cases"] = stdout_common.get_test_cases(course_id, lab["name"])
     return course_labs
 
 def get_course_data(course_id):
@@ -192,13 +196,42 @@ def delete_lab(course_id, lab_id):
     courses_config[course_id]["labs"] = list(filter(lambda lab: lab['name'] != lab_id, courses_config[course_id]["labs"]))
     update_course_config(courses_config)
 
+def sanitize_and_validate_lab_data(lab_data):
+    if 'name' not in lab_data or len(lab_data['name']) > 20:
+        raise InvalidLabDataError
+    try:
+        lab_data['runtime_limit'] = int(lab_data['runtime_limit'])
+    except:
+        raise InvalidLabDataError
+    if 'disable_internet' not in lab_data or type(lab_data['disable_internet']) != bool:
+        raise InvalidLabDataError
 
 def add_lab(course_id, lab_data):
     courses_config = get_courses_config_if_course_exists(course_id)
+    # Validate lab_data
+    if 'name' in lab_data and lab_data['name'] in map(lambda lab: lab['name'], courses_config[course_id]['labs']):
+        raise LabAlreadyExistsError
+    sanitize_and_validate_lab_data(lab_data)
+    # Start creating lab
     stdout_common.create_lab_dir(course_id, lab_data['name'])
     if lab_data['test_cases']:
         stdout_common.create_test_cases(course_id, lab_data['name'], lab_data['test_cases'])
     del lab_data['test_cases']
+    courses_config[course_id]['labs'].append(lab_data)
+    update_course_config(courses_config)
+
+def edit_lab(course_id, lab_data):
+    courses_config = get_courses_config_if_course_exists(course_id)
+    # Validate lab_data
+    if 'name' in lab_data and lab_data['name'] not in map(lambda lab: lab['name'], courses_config[course_id]['labs']):
+        raise LabNotFoundError
+    sanitize_and_validate_lab_data(lab_data)
+    # Start creating lab
+    stdout_common.clear_test_cases(course_id, lab_data['name'])
+    if lab_data['test_cases']:
+        stdout_common.create_test_cases(course_id, lab_data['name'], lab_data['test_cases'])
+    del lab_data['test_cases']
+    courses_config[course_id]['labs'] = list(filter(lambda lab: lab['name'] != lab_data['name'], courses_config[course_id]['labs'])) 
     courses_config[course_id]['labs'].append(lab_data)
     update_course_config(courses_config)
 
@@ -209,5 +242,14 @@ class InvalidConfigError(Exception):
 class CourseNotFoundError(Exception):
     pass
 
+class LabNotFoundError(Exception):
+    pass
+
 class SubmissionNotFoundError(Exception):
+    pass
+
+class LabAlreadyExistsError(Exception):
+    pass
+
+class InvalidLabDataError(Exception):
     pass

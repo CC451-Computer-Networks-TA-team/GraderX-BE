@@ -66,7 +66,10 @@ class UPLOAD_STATUS(Enum):
 
 @app.route('/courses')
 def get_courses():
-    return jsonify({"courses": manager.get_all_courses_data()})
+    stdout = False
+    if 'STDOUT' in request.args:
+        stdout = True
+    return jsonify({"courses": manager.get_all_courses_data(only_stdout = stdout)})
 
 
 @app.route('/courses/<course_name>/labs')
@@ -89,6 +92,26 @@ def add_lab(course_name):
         return "SUCCESS", 200
     except manager.CourseNotFoundError:
         return jsonify({"status": "Course Not Found"}), 404
+    except manager.LabAlreadyExistsError:
+        return jsonify({"status": "Lab with this name already exists"}), 400
+    except manager.InvalidLabDataError:
+        return jsonify({"status": "Invalid lab data"}), 400
+    except:
+        return "An error occured", 500
+    pass
+
+
+@app.route('/courses/<course_name>/labs/<lab_id>', methods=["PUT"])
+def edit_lab(course_name, lab_id):
+    try:
+        manager.edit_lab(course_name, request.json)
+        return "SUCCESS", 200
+    except manager.CourseNotFoundError:
+        return jsonify({"status": "Course Not Found"}), 404
+    except manager.InvalidLabDataError:
+        return jsonify({"status": "Invalid lab data"}), 400
+    except manager.LabNotFoundError:
+        return jsonify({"status": "Lab not found"}), 404
     except:
         return "An error occured", 500
     pass
@@ -185,14 +208,14 @@ def add_submissions():
             }), 400
         if allowed_file(submissions_file.filename):
             # TODO: secure filename
-            # try:
-            res = manager.apply_moss(
-                submissions_file, request.form)
-            return jsonify(res), 200
-            # except:
-            #     return jsonify({
-            #         'status': UPLOAD_STATUS.GRADER_FAILED.value
-            #     }), 500
+            try:
+                res = manager.apply_moss(
+                    submissions_file, request.form)
+                return jsonify(res), 200
+            except:
+                return jsonify({
+                    'status': UPLOAD_STATUS.GRADER_FAILED.value
+                }), 500
         else:
             return jsonify({
                 'status': UPLOAD_STATUS.UNSUPPORTED_FILE.value
