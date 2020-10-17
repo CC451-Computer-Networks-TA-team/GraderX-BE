@@ -135,6 +135,34 @@ def get_diff_results_file(course_name, lab):
      
     return data
 
+def get_submission_files(course, lab, submission_id):
+    course_grader = select_course_grader(course)
+    submission_files_paths = course_grader.get_submission_files(course, lab, submission_id)
+    if submission_files_paths:
+        return list(map(lambda path: path.name, submission_files_paths))
+    else:
+        raise SubmissionNotFoundError
+
+def update_submission_files(course, lab, submission_id, submission_files):
+    course_grader = select_course_grader(course)
+    try:
+        course_grader.update_submission_files(course, lab, submission_id, submission_files)
+    except FileNotFoundError:
+        raise SubmissionNotFoundError
+
+def get_submission_file_content(course, lab, submission_id, file_name):
+    course_grader = select_course_grader(course)
+    try:
+        submission_file_content = course_grader.get_submission_file_content(course, lab, submission_id, file_name)
+        return submission_file_content
+    except FileNotFoundError:
+        raise SubmissionFileNotFoundError
+
+def get_submissions_list(course, lab):
+    course_grader = select_course_grader(course)
+    submissions_list = course_grader.get_not_fullmark_submissions(course, lab)
+    return submissions_list
+
 def get_course_data(course_id):
     try:
         course_data = get_courses_config()[course_id]
@@ -160,6 +188,11 @@ def update_course_data(course_id, new_course_data):
 class InvalidConfigError(Exception):
     pass
 
+class SubmissionNotFoundError(Exception):
+    pass
+
+class SubmissionFileNotFoundError(Exception):
+    pass
 
 class CourseNotFoundError(Exception):
     pass

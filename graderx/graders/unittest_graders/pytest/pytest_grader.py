@@ -103,3 +103,36 @@ def get_diff_results_file(course_name, lab):
     with open(file_path) as f:
         data = json.load(f)
     return data
+
+def get_submission_files(course, lab, submission_id):
+    lab_path = get_lab_path(course, lab)
+    return list(lab_path.glob(f"submissions/2020/{submission_id}.py"))
+
+def update_submission_files(course, lab, submission_id, submission_files):
+    submission_path = get_lab_path(course, lab).joinpath(f'submissions/2020/')
+    for file_key in submission_files:
+        submission_files[file_key].save(submission_path.joinpath(submission_files[file_key].filename))
+    
+def get_submission_file_content(course, lab, submission_id, file_name):
+    submission_path = get_lab_path(course, lab).joinpath(f'submissions/2020/')
+    submission_file = open(submission_path.joinpath(file_name))
+    return submission_file.read()
+
+def get_not_fullmark_submissions(course, lab):
+    lab_path = get_lab_path(course, lab)
+    submissions_path = lab_path.joinpath('submissions/2020')
+    grades_file_path = get_course_root(course).joinpath(f'res/{lab}')
+    with open(grades_file_path) as grades_file:
+        not_fullmark_students_with_grades = grades_file.readlines()
+    not_fullmark_students = []
+    for student in not_fullmark_students_with_grades:
+        if float(student.split(',')[1]) < 1:
+            not_fullmark_students.append(student.split(',')[0])
+    all_submissions_names = [sfile.name for sfile in submissions_path.glob('*.py')]
+    not_fullmark_submissions = set()
+    # TODO: Improve performance
+    for student in not_fullmark_students:
+        for submission_name in all_submissions_names:
+            if student in submission_name:
+                not_fullmark_submissions.add('.'.join(submission_name.split('.')[0:-1]))
+    return list(not_fullmark_submissions)
