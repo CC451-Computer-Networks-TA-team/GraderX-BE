@@ -180,10 +180,10 @@ def add_submissions():
         if allowed_file(submissions_file.filename):
             # TODO: secure filename
             try:
-                manager.add_submissions(
+                submission_key = manager.add_submissions(
                     course_name, lab_name, submissions_file)
                 return jsonify({
-                    'status': UPLOAD_STATUS.SUCCESS.value
+                    'status': UPLOAD_STATUS.SUCCESS.value, 'key': submission_key
                 }), 200
             except:
                 return jsonify({

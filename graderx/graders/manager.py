@@ -91,7 +91,8 @@ def add_submissions(course_name, lab, submissions_file):
     All the possibly returned modules will have a add_submissions function that will be invoked here
     """
     course_grader = select_course_grader(course_name)
-    course_grader.add_submissions(course_name, lab, submissions_file)
+    submission_key = course_grader.add_submissions(course_name, lab, submissions_file)
+    return submission_key
     
 
 def apply_moss(submissions_file, moss_parameters, course_name='cc451', lab='lab3'):
@@ -106,10 +107,10 @@ def apply_moss(submissions_file, moss_parameters, course_name='cc451', lab='lab3
     return response
 
 
-def save_single_submission(course_name, lab, file_in_memory, filename):
+def save_single_submission(course_name, lab, file_in_memory, filename, submission_key):
     course_grader = select_course_grader(course_name)
     course_grader.save_single_submission(
-        course_name, lab, file_in_memory, filename)
+        course_name, lab, file_in_memory, filename, submission_key)
 
 
 def clear_submissions(course_name, lab):
