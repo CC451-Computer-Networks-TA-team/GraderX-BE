@@ -3,19 +3,47 @@
     "type": "unittest",
     "variant": "pytest",
     "labs": [
-      "lab1_client",
-      "lab1_server",
-      "lab3",
-      "lab4"
+      {
+        "name": "lab1_client",
+        "disable_internet": false,
+        "runtime_limit": 2
+      },
+      {
+        "name": "lab1_server",
+        "disable_internet": false,
+        "runtime_limit": 2
+      },
+      {
+        "name": "lab3",
+        "disable_internet": false,
+        "runtime_limit": 2
+      },
+      {
+        "name": "lab4",
+        "disable_internet": false,
+        "runtime_limit": 2
+      }
     ]
   },
   "test_course": {
-    "type": "stdout",
-    "variant": "c",
     "labs": [
-      "lab1",
-      "lab2",
-      "lab3"
-    ]
+      {
+        "disable_internet": false,
+        "name": "lab1",
+        "runtime_limit": 3
+      },
+      {
+        "disable_internet": false,
+        "name": "lab2",
+        "runtime_limit": 2
+      },
+      {
+        "disable_internet": false,
+        "name": "lab3",
+        "runtime_limit": 4
+      }
+    ],
+    "type": "stdout",
+    "variant": "c"
   }
 }

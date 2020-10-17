@@ -19,6 +19,26 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@app.route('/course', methods=['POST'])
+def create_course():
+    """
+    Takes a json object that has the needed data: 
+        1- courseName: new course name
+        2- langugae: Programming language to be used with this course labs
+        3- labs: An array that has the test cases to be runned, time limit for each test case
+        4- course type: type of grader to be used with this course (unit testing / stdout cases comparison)
+    """
+    try:
+        courseName = request.json['name']
+        language = request.json['variant']
+        labs = request.json['labs']
+    except KeyError:
+        return jsonify({'status': "course name, language, and labs parameters must be included"}), 400
+    try:
+        manager.create_course(courseName, language, labs)
+        return "SUCCESS", 200
+    except:
+        return "An error occured", 500
 
 class UPLOAD_STATUS(Enum):
     """
@@ -171,6 +191,28 @@ def add_submissions():
             return "Failed to import submissions", 500
 
 
+@app.route('/courses/<course_id>/edit', methods=["GET"])
+def edit_course(course_id):
+    try:
+        course_data = manager.get_course_data(course_id)
+    except manager.CourseNotFoundError:
+        return jsonify({"status": "Course Not Found"}), 404
+    except:
+        return "An error occured", 500
+    return jsonify(course_data)
+
+
+@app.route('/courses/<course_id>', methods=["PUT"])
+def update_course(course_id):
+    try:
+        manager.update_course_data(course_id, request.json)
+    except manager.CourseNotFoundError:
+        return jsonify({"status": "Course Not Found"}), 404
+    except:
+        return "An error occured", 500
+    return jsonify({"status": "Course updated successfuly"})
+
+
 @app.route('/results')
 def get_results():
     """
@@ -212,6 +254,9 @@ def get_results():
         return jsonify({
             'status': "Failed to fetch results, please make sure you run the grader first"
         }), 500
+
+
+
 
 
 @app.route('/submissions/validate', methods=['POST'])
