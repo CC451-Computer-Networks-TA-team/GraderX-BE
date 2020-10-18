@@ -40,6 +40,17 @@ def create_course():
     except:
         return "An error occured", 500
 
+
+@app.route('/courses/<course_name>', methods=['DELETE'])
+def delete_course(course_name):
+    try:
+        manager.delete_course(course_name)
+        return "SUCCESS", 200
+    except manager.CourseNotFoundError:
+        return jsonify({"status": "Course Not Found"}), 404
+    except:
+        return "An error occured", 500
+
 class UPLOAD_STATUS(Enum):
     """
     Status messages sent to the client
@@ -55,7 +66,10 @@ class UPLOAD_STATUS(Enum):
 
 @app.route('/courses')
 def get_courses():
-    return jsonify({"courses": manager.get_courses()})
+    stdout = False
+    if 'STDOUT' in request.args:
+        stdout = True
+    return jsonify({"courses": manager.get_all_courses_data(only_stdout = stdout)})
 
 
 @app.route('/courses/<course_name>/labs')
@@ -65,7 +79,52 @@ def get_labs(course_name):
     Example:GET /courses/cc451/labs
     Response body: {"labs": ["lab1_client", "lab1_server", "lab3", "lab4"]}
     """
-    return jsonify({"labs": manager.get_labs(course_name)})
+    try:
+        labs = manager.get_all_labs_data(course_name)
+        return jsonify({"labs": labs}) 
+    except manager.CourseNotFoundError:
+        return jsonify({"status": "Course Not Found"}), 404
+
+@app.route('/courses/<course_name>/labs', methods=["POST"])
+def add_lab(course_name):
+    try:
+        manager.add_lab(course_name, request.json)
+        return "SUCCESS", 200
+    except manager.CourseNotFoundError:
+        return jsonify({"status": "Course Not Found"}), 404
+    except manager.LabAlreadyExistsError:
+        return jsonify({"status": "Lab with this name already exists"}), 400
+    except manager.InvalidLabDataError:
+        return jsonify({"status": "Invalid lab data"}), 400
+    except:
+        return "An error occured", 500
+    pass
+
+
+@app.route('/courses/<course_name>/labs/<lab_id>', methods=["PUT"])
+def edit_lab(course_name, lab_id):
+    try:
+        manager.edit_lab(course_name, request.json)
+        return "SUCCESS", 200
+    except manager.CourseNotFoundError:
+        return jsonify({"status": "Course Not Found"}), 404
+    except manager.InvalidLabDataError:
+        return jsonify({"status": "Invalid lab data"}), 400
+    except manager.LabNotFoundError:
+        return jsonify({"status": "Lab not found"}), 404
+    except:
+        return "An error occured", 500
+    pass
+
+@app.route('/courses/<course_name>/labs/<lab_id>', methods=["DELETE"])
+def delete_lab(course_name, lab_id):
+    try:
+        manager.delete_lab(course_name, lab_id)
+        return "SUCCESS", 200
+    except manager.CourseNotFoundError:
+        return jsonify({"status": "Course Not Found"}), 404
+    except:
+        return "An error occured", 500
 
 
 @app.route('/run_grader')
@@ -149,14 +208,14 @@ def add_submissions():
             }), 400
         if allowed_file(submissions_file.filename):
             # TODO: secure filename
-            # try:
-            res = manager.apply_moss(
-                submissions_file, request.form)
-            return jsonify(res), 200
-            # except:
-            #     return jsonify({
-            #         'status': UPLOAD_STATUS.GRADER_FAILED.value
-            #     }), 500
+            try:
+                res = manager.apply_moss(
+                    submissions_file, request.form)
+                return jsonify(res), 200
+            except:
+                return jsonify({
+                    'status': UPLOAD_STATUS.GRADER_FAILED.value
+                }), 500
         else:
             return jsonify({
                 'status': UPLOAD_STATUS.UNSUPPORTED_FILE.value
@@ -194,7 +253,7 @@ def add_submissions():
 @app.route('/courses/<course_id>/edit', methods=["GET"])
 def edit_course(course_id):
     try:
-        course_data = manager.get_course_data(course_id)
+        course_data = manager.get_course_data_with_test_cases(course_id)
     except manager.CourseNotFoundError:
         return jsonify({"status": "Course Not Found"}), 404
     except:

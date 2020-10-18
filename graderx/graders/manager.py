@@ -16,6 +16,12 @@ def get_courses_config():
     with open(Path(__file__).parent.joinpath("courses_config.json")) as f:
         return json.load(f)
 
+def get_courses_config_if_course_exists(course_name):
+    courses_config = get_courses_config()
+    if course_name not in courses_config:
+        raise CourseNotFoundError
+    return courses_config
+
 def update_course_config(course_config_dict):
     """
     Takes a dict and replaces the current courses_config with it
@@ -35,10 +41,8 @@ def create_course(course_name, language, labs):
         if course.lower() == course_name.lower():
             return "Course already present", 404
     current_courses = get_courses_config()
-    stdout_common.create_course_data(course_name, labs)
-    for index, lab in enumerate(labs):
-        del labs[index]['test_cases']
-    current_courses[course_name] = {"type": "stdout", "variant": language, "labs": labs}
+    stdout_common.create_course_dir(course_name)
+    current_courses[course_name] = {"type": "stdout", "variant": language.lower(), "labs": []}
     add_new_course_to_current_courses(current_courses)
 
 
@@ -135,6 +139,20 @@ def get_diff_results_file(course_name, lab):
      
     return data
 
+def get_all_courses_data(only_stdout = False):
+    all_courses = get_courses_config()
+    if only_stdout:
+        all_courses = {course_name:course_data for course_name,course_data in all_courses.items() if course_data['type'] == 'stdout'}
+    for course_id, course_data in all_courses.items():
+        course_data['name'] = course_id
+    return list(all_courses.values())
+
+def get_all_labs_data(course_id):
+    course_labs = get_course_data(course_id)['labs']
+    for index, lab in enumerate(course_labs):
+        course_labs[index]["test_cases"] = stdout_common.get_test_cases(course_id, lab["name"])
+    return course_labs
+
 def get_submission_files(course, lab, submission_id):
     course_grader = select_course_grader(course)
     submission_files_paths = course_grader.get_submission_files(course, lab, submission_id)
@@ -168,15 +186,18 @@ def get_course_data(course_id):
         course_data = get_courses_config()[course_id]
     except KeyError:
         raise CourseNotFoundError()
-    for index, lab in enumerate(course_data['labs']):
-        course_data['labs'][index]["test_cases"] = stdout_common.get_test_cases(course_id, lab["name"])
     course_data['name'] = course_id
     return course_data
 
+
+def get_course_data_with_test_cases(course_id):
+    course_data = get_course_data(course_id)
+    for index, lab in enumerate(course_data['labs']):
+        course_data['labs'][index]["test_cases"] = stdout_common.get_test_cases(course_id, lab["name"])
+    return course_data
+
 def update_course_data(course_id, new_course_data):
-    courses_config = get_courses_config()
-    if course_id not in courses_config:
-        raise CourseNotFoundError
+    courses_config = get_courses_config_if_course_exists(course_id)
     stdout_common.create_course_data(course_id, new_course_data['labs'])
     for index, _ in enumerate(new_course_data['labs']):
         del new_course_data['labs'][index]['test_cases']
@@ -184,6 +205,62 @@ def update_course_data(course_id, new_course_data):
     courses_config[course_id] = new_course_data
     update_course_config(courses_config)
 
+def delete_course(course_id):
+    courses_config = get_courses_config_if_course_exists(course_id)
+    try:
+        stdout_common.delete_course(course_id)
+    except FileNotFoundError:
+        pass
+    del courses_config[course_id]
+    update_course_config(courses_config)
+
+def delete_lab(course_id, lab_id):
+    courses_config = get_courses_config_if_course_exists(course_id)
+    try:
+        stdout_common.delete_lab(course_id, lab_id)
+    except FileNotFoundError:
+        pass
+    courses_config[course_id]["labs"] = list(filter(lambda lab: lab['name'] != lab_id, courses_config[course_id]["labs"]))
+    update_course_config(courses_config)
+
+def sanitize_and_validate_lab_data(lab_data):
+    if 'name' not in lab_data or len(lab_data['name']) > 20:
+        raise InvalidLabDataError
+    try:
+        lab_data['runtime_limit'] = int(lab_data['runtime_limit'])
+    except:
+        raise InvalidLabDataError
+    if 'disable_internet' not in lab_data or type(lab_data['disable_internet']) != bool:
+        raise InvalidLabDataError
+
+def add_lab(course_id, lab_data):
+    courses_config = get_courses_config_if_course_exists(course_id)
+    # Validate lab_data
+    if 'name' in lab_data and lab_data['name'] in map(lambda lab: lab['name'], courses_config[course_id]['labs']):
+        raise LabAlreadyExistsError
+    sanitize_and_validate_lab_data(lab_data)
+    # Start creating lab
+    stdout_common.create_lab_dir(course_id, lab_data['name'])
+    if lab_data['test_cases']:
+        stdout_common.create_test_cases(course_id, lab_data['name'], lab_data['test_cases'])
+    del lab_data['test_cases']
+    courses_config[course_id]['labs'].append(lab_data)
+    update_course_config(courses_config)
+
+def edit_lab(course_id, lab_data):
+    courses_config = get_courses_config_if_course_exists(course_id)
+    # Validate lab_data
+    if 'name' in lab_data and lab_data['name'] not in map(lambda lab: lab['name'], courses_config[course_id]['labs']):
+        raise LabNotFoundError
+    sanitize_and_validate_lab_data(lab_data)
+    # Start creating lab
+    stdout_common.clear_test_cases(course_id, lab_data['name'])
+    if lab_data['test_cases']:
+        stdout_common.create_test_cases(course_id, lab_data['name'], lab_data['test_cases'])
+    del lab_data['test_cases']
+    courses_config[course_id]['labs'] = list(filter(lambda lab: lab['name'] != lab_data['name'], courses_config[course_id]['labs'])) 
+    courses_config[course_id]['labs'].append(lab_data)
+    update_course_config(courses_config)
 
 class InvalidConfigError(Exception):
     pass
@@ -197,5 +274,14 @@ class SubmissionFileNotFoundError(Exception):
 class CourseNotFoundError(Exception):
     pass
 
+class LabNotFoundError(Exception):
+    pass
+
 class SubmissionNotFoundError(Exception):
+    pass
+
+class LabAlreadyExistsError(Exception):
+    pass
+
+class InvalidLabDataError(Exception):
     pass
