@@ -8,7 +8,7 @@ from .lib import compile_submission as compiler
 from .lib import compute_results as compute_results
 from .lib import test_cases_parser as tc_parser
 from .lib.submissions_extraction import extract_submissions, clean_directory
-from .lib.utils import current_timestamp
+from ...lib import helpers
 import json
 
 
@@ -90,7 +90,7 @@ def add_submissions(course, lab, submissions_file):
     submissions_file in the [lab_path/submissions/] directory  
     """
     lab_path = get_lab_path(course, lab)
-    timestamp = current_timestamp()
+    timestamp = helpers.current_timestamp()
     # extract_submissions will clean the target submissions directory before extracting
     extract_submissions(lab_path.joinpath(f'submissions/{timestamp}'), submissions_file)
     return timestamp

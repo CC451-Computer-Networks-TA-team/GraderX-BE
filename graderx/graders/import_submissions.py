@@ -3,6 +3,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 import gspread
 from . import manager
+from .lib import helpers
 from validator_collection.checkers import is_url
 from pathlib import Path
 import random
@@ -15,15 +16,11 @@ import requests
 import base64
 from validator_collection import validators, checkers
 import urllib.parse
-from datetime import datetime
 
 
 def get_id_from_url(url):
     return re.findall(r'[-\w]{25,}', url)[0]
 
-def current_timestamp():
-    now = datetime.now()
-    return now.strftime("%Y%m%d%H%M%S%f")
 
 class ImportSubmissions(ABC):
     def __init__(self, access_token, spreadsheet_link, course=None, destination_lab=None, field=None):
@@ -124,7 +121,7 @@ class GoogleImportSubmissions(ImportSubmissions):
             uploads_column = list(
                 map(lambda cell: is_url(cell), sheet_second_row)).index(True)
             sheet_uploads_col = self.sheet.col_values(uploads_column+1)
-        timestamp = current_timestamp()
+        timestamp = helpers.current_timestamp()
         for i in range(1, len(sheet_uploads_col)):
             self.save_to_lab(sheet_uploads_col[i], timestamp)
 
@@ -291,7 +288,7 @@ class MSImportSubmissions(ImportSubmissions):
 
         iterCol = iter(submission_list)
         next(iterCol)
-        timestamp = current_timestamp()
+        timestamp = helpers.current_timestamp()
         for URL in iterCol:
             self.save_to_lab(URL[0], timestamp)
 
