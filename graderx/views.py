@@ -88,7 +88,11 @@ def get_labs(course_name):
 @app.route('/courses/<course_name>/labs', methods=["POST"])
 def add_lab(course_name):
     try:
-        manager.add_lab(course_name, request.json)
+        lab_data = request.form.to_dict()
+        if 'lab_guide' in request.files:
+            manager.add_lab(course_name, lab_data, request.files['lab_guide'])
+        else:
+            manager.add_lab(course_name, lab_data)
         return "SUCCESS", 200
     except manager.CourseNotFoundError:
         return jsonify({"status": "Course Not Found"}), 404
@@ -104,7 +108,8 @@ def add_lab(course_name):
 @app.route('/courses/<course_name>/labs/<lab_id>', methods=["PUT"])
 def edit_lab(course_name, lab_id):
     try:
-        manager.edit_lab(course_name, request.json)
+        lab_data = request.form.to_dict()
+        manager.edit_lab(course_name, lab_data)
         return "SUCCESS", 200
     except manager.CourseNotFoundError:
         return jsonify({"status": "Course Not Found"}), 404

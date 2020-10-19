@@ -230,10 +230,14 @@ def sanitize_and_validate_lab_data(lab_data):
         lab_data['runtime_limit'] = int(lab_data['runtime_limit'])
     except:
         raise InvalidLabDataError
-    if 'disable_internet' not in lab_data or type(lab_data['disable_internet']) != bool:
+    if 'disable_internet' not in lab_data:
         raise InvalidLabDataError
+    else:
+        lab_data['disable_internet'] = False if lab_data['disable_internet'] == 'false' else True
+    if lab_data['test_cases']:
+        lab_data['test_cases'] = json.loads(lab_data['test_cases'])
 
-def add_lab(course_id, lab_data):
+def add_lab(course_id, lab_data, lab_guide = None):
     courses_config = get_courses_config_if_course_exists(course_id)
     # Validate lab_data
     if 'name' in lab_data and lab_data['name'] in map(lambda lab: lab['name'], courses_config[course_id]['labs']):
@@ -243,7 +247,13 @@ def add_lab(course_id, lab_data):
     stdout_common.create_lab_dir(course_id, lab_data['name'])
     if lab_data['test_cases']:
         stdout_common.create_test_cases(course_id, lab_data['name'], lab_data['test_cases'])
+        lab_data['public_test_cases'] = list(map(lambda tc: tc['id'], filter(lambda tc: tc['public'], lab_data['test_cases'])))
     del lab_data['test_cases']
+    if lab_guide:
+        stdout_common.create_lab_guide(course_id, lab_data['name'], lab_guide)
+    else:
+        # Using pop to avoid exception if 'lab_guide' is not in lab_data
+        lab_data.pop('lab_guide', None)
     courses_config[course_id]['labs'].append(lab_data)
     update_course_config(courses_config)
 

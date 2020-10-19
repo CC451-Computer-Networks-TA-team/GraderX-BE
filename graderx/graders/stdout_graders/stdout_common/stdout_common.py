@@ -36,6 +36,12 @@ def clear_test_cases(course, lab):
     if test_cases_path.exists():
         shutil.rmtree(str(test_cases_path))
 
+def create_lab_guide(course, lab, lab_guide_file):
+    lab_path = get_lab_path(course, lab)
+    file_name = lab_guide_file.filename
+    lab_guide_file.save(dst=(lab_path.joinpath('lab_guide.md')))
+
+
 def get_lab_path(course, lab):
     return Path(__file__).joinpath(
         f'../../../courses/{course}/labs/{lab}').resolve()
