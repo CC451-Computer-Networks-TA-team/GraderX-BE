@@ -73,25 +73,25 @@ def select_course_grader(course_name):
         raise InvalidConfigError()
 
 
-def run_grader(course_name, lab):
+def run_grader(course_name, lab, key):
     """
     All the possibly returned modules will have a run_grader function that will be invoked here
     """
     course_grader = select_course_grader(course_name)
-    course_grader.run_grader(course_name, lab)
+    course_grader.run_grader(course_name, lab, key)
 
 
-def run_grader_diff(course_name, lab):
+def run_grader_diff(course_name, lab, key):
     course_grader = select_course_grader(course_name)
-    return course_grader.get_diff_results_file(course_name, lab)
+    return course_grader.get_diff_results_file(course_name, lab, key)
 
 
-def add_submissions(course_name, lab, submissions_file):
+def add_submissions(course_name, lab, submissions_file, key):
     """
     All the possibly returned modules will have a add_submissions function that will be invoked here
     """
     course_grader = select_course_grader(course_name)
-    course_grader.add_submissions(course_name, lab, submissions_file)
+    course_grader.add_submissions(course_name, lab, submissions_file, key)
     
 
 def apply_moss(submissions_file, moss_parameters, course_name='cc451', lab='lab3'):
@@ -106,37 +106,37 @@ def apply_moss(submissions_file, moss_parameters, course_name='cc451', lab='lab3
     return response
 
 
-def save_single_submission(course_name, lab, file_in_memory, filename):
+def save_single_submission(course_name, lab, file_in_memory, filename, key):
     course_grader = select_course_grader(course_name)
     course_grader.save_single_submission(
-        course_name, lab, file_in_memory, filename)
+        course_name, lab, file_in_memory, filename, key)
 
 
-def clear_submissions(course_name, lab):
+def clear_submissions(course_name, lab, key):
     """
     Deletes everything inside the requested lab's submissions directory
     """
     course_grader = select_course_grader(course_name)
-    course_grader.clear_submissions(course_name, lab)
+    course_grader.clear_submissions(course_name, lab, key)
 
 
-def compressed_results(course_name, lab):
+def compressed_results(course_name, lab, key):
     """
     All the possibly returned modules will have a results_to_download function that will be invoked here
     """
     course_grader = select_course_grader(course_name)
     # returns a list of file paths
-    results_files = course_grader.results_to_download(course_name, lab)
+    results_files = course_grader.results_to_download(course_name, lab, key)
     # create a zip file of the returned file paths
     zip_file_path = helpers.create_zip_file(results_files)
     return zip_file_path
 
-def get_diff_results_file(course_name, lab):
-    path = Path("graderx").joinpath("graders").joinpath("courses").joinpath(course_name).joinpath(lab)
+def get_diff_results_file(course_name, lab, key):
+    path = Path("graderx").joinpath("graders").joinpath("courses").joinpath(course_name)
+    .joinpath(lab).joinpath(key)
     file_path = path.joinpath(f"{lab}_diff_result.json")
     with open(file_path) as f:
      data = json.load(f)
-     
     return data
 
 def get_all_courses_data(only_stdout = False):
@@ -153,32 +153,32 @@ def get_all_labs_data(course_id):
         course_labs[index]["test_cases"] = stdout_common.get_test_cases(course_id, lab["name"])
     return course_labs
 
-def get_submission_files(course, lab, submission_id):
+def get_submission_files(course, lab, submission_id, key):
     course_grader = select_course_grader(course)
-    submission_files_paths = course_grader.get_submission_files(course, lab, submission_id)
+    submission_files_paths = course_grader.get_submission_files(course, lab, submission_id, key)
     if submission_files_paths:
         return list(map(lambda path: path.name, submission_files_paths))
     else:
         raise SubmissionNotFoundError
 
-def update_submission_files(course, lab, submission_id, submission_files):
+def update_submission_files(course, lab, submission_id, submission_files, key):
     course_grader = select_course_grader(course)
     try:
-        course_grader.update_submission_files(course, lab, submission_id, submission_files)
+        course_grader.update_submission_files(course, lab, submission_id, submission_files, key)
     except FileNotFoundError:
         raise SubmissionNotFoundError
 
-def get_submission_file_content(course, lab, submission_id, file_name):
+def get_submission_file_content(course, lab, submission_id, file_name, key):
     course_grader = select_course_grader(course)
     try:
-        submission_file_content = course_grader.get_submission_file_content(course, lab, submission_id, file_name)
+        submission_file_content = course_grader.get_submission_file_content(course, lab, submission_id, file_name, key)
         return submission_file_content
     except FileNotFoundError:
         raise SubmissionFileNotFoundError
 
-def get_submissions_list(course, lab):
+def get_submissions_list(course, lab, key):
     course_grader = select_course_grader(course)
-    submissions_list = course_grader.get_not_fullmark_submissions(course, lab)
+    submissions_list = course_grader.get_not_fullmark_submissions(course, lab, key)
     return submissions_list
 
 def get_course_data(course_id):
