@@ -104,21 +104,21 @@ def get_diff_results_file(course_name, lab):
         data = json.load(f)
     return data
 
-def get_submission_files(course, lab, submission_id):
+def get_submission_files(course, lab, submission_id, sumbission_key=None):
     lab_path = get_lab_path(course, lab)
     return list(lab_path.glob(f"submissions/2020/{submission_id}.py"))
 
-def update_submission_files(course, lab, submission_id, submission_files):
+def update_submission_files(course, lab, submission_id, submission_files, sumbission_key=None):
     submission_path = get_lab_path(course, lab).joinpath(f'submissions/2020/')
     for file_key in submission_files:
         submission_files[file_key].save(submission_path.joinpath(submission_files[file_key].filename))
     
-def get_submission_file_content(course, lab, submission_id, file_name):
+def get_submission_file_content(course, lab, submission_id, file_name, sumbission_key=None):
     submission_path = get_lab_path(course, lab).joinpath(f'submissions/2020/')
     submission_file = open(submission_path.joinpath(file_name))
     return submission_file.read()
 
-def get_not_fullmark_submissions(course, lab):
+def get_not_fullmark_submissions(course, lab, sumbission_key=None):
     lab_path = get_lab_path(course, lab)
     submissions_path = lab_path.joinpath('submissions/2020')
     grades_file_path = get_course_root(course).joinpath(f'res/{lab}')

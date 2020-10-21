@@ -123,23 +123,23 @@ def get_diff_results_file(course_name, lab):
         data = json.load(f)
     return data
 
-def get_submission_files(course, lab, submission_id):
+def get_submission_files(course, lab, submission_id, submission_key):
     lab_path = get_lab_path(course, lab)
-    return list(lab_path.glob(f"submissions/{submission_id}/*.c"))
+    return list(lab_path.glob(f"submissions/{submission_key}/{submission_id}/*.c"))
 
-def update_submission_files(course, lab, submission_id, submission_files):
-    submission_path = get_lab_path(course, lab).joinpath(f'submissions/{submission_id}')
+def update_submission_files(course, lab, submission_id, submission_files, submission_key):
+    submission_path = get_lab_path(course, lab).joinpath(f'submissions/{submission_key}/{submission_id}')
     for file_key in submission_files:
         submission_files[file_key].save(submission_path.joinpath(file_key))
 
-def get_submission_file_content(course, lab, submission_id, file_name):
-    submission_path = get_lab_path(course, lab).joinpath(f'submissions/{submission_id}')
+def get_submission_file_content(course, lab, submission_id, file_name, submission_key):
+    submission_path = get_lab_path(course, lab).joinpath(f'submissions/{submission_key}/{submission_id}')
     submission_file = open(submission_path.joinpath(file_name))
     return submission_file.read()
 
-def get_not_fullmark_submissions(course, lab):
+def get_not_fullmark_submissions(course, lab, submission_key):
     lab_path = get_lab_path(course, lab)
-    file_path = lab_path.joinpath(f"{lab}_diff_result.json")
+    file_path = lab_path.joinpath(f"submissions/{submission_key}/{lab}_diff_result.json")
     with open(file_path) as diff_file:
         diff_dict = json.load(diff_file)
     return [submission['id'] for submission in diff_dict]
