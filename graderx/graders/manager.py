@@ -132,8 +132,7 @@ def compressed_results(course_name, lab, key):
     return zip_file_path
 
 def get_diff_results_file(course_name, lab, key):
-    path = Path("graderx").joinpath("graders").joinpath("courses").joinpath(course_name)
-    .joinpath(lab).joinpath(key)
+    path = Path("graderx").joinpath("graders").joinpath("courses").joinpath(course_name).joinpath(lab).joinpath(key)
     file_path = path.joinpath(f"{lab}_diff_result.json")
     with open(file_path) as f:
      data = json.load(f)

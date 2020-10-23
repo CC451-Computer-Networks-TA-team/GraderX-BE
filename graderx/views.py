@@ -19,6 +19,7 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
 @app.route('/course', methods=['POST'])
 def create_course():
     """
@@ -51,6 +52,7 @@ def delete_course(course_name):
     except:
         return "An error occured", 500
 
+
 class UPLOAD_STATUS(Enum):
     """
     Status messages sent to the client
@@ -69,7 +71,7 @@ def get_courses():
     stdout = False
     if 'STDOUT' in request.args:
         stdout = True
-    return jsonify({"courses": manager.get_all_courses_data(only_stdout = stdout)})
+    return jsonify({"courses": manager.get_all_courses_data(only_stdout=stdout)})
 
 
 @app.route('/courses/<course_name>/labs')
@@ -81,9 +83,10 @@ def get_labs(course_name):
     """
     try:
         labs = manager.get_all_labs_data(course_name)
-        return jsonify({"labs": labs}) 
+        return jsonify({"labs": labs})
     except manager.CourseNotFoundError:
         return jsonify({"status": "Course Not Found"}), 404
+
 
 @app.route('/courses/<course_name>/labs', methods=["POST"])
 def add_lab(course_name):
@@ -116,6 +119,7 @@ def edit_lab(course_name, lab_id):
         return "An error occured", 500
     pass
 
+
 @app.route('/courses/<course_name>/labs/<lab_id>', methods=["DELETE"])
 def delete_lab(course_name, lab_id):
     try:
@@ -137,10 +141,11 @@ def start_grading():
     try:
         course_name = request.args['course']
         lab_name = request.args['lab']
+        key = request.args['key']
     except KeyError:
         return jsonify({'status': "course and lab query parameters must be included"}), 400
     try:
-        manager.run_grader(course_name, lab_name)
+        manager.run_grader(course_name, lab_name, key)
         return "SUCCESS", 200
     except:
         return "Failed to run the grader", 500
@@ -162,6 +167,8 @@ def add_submissions():
         course_name = request.args['course']
         lab_name = request.args['lab']
         method = request.args['method']
+        key = request.args['key']
+
     except KeyError:
         return jsonify({'status': "course, lab and method query parameters must be included"}), 400
     if method == "file":
@@ -181,7 +188,7 @@ def add_submissions():
             # TODO: secure filename
             try:
                 manager.add_submissions(
-                    course_name, lab_name, submissions_file)
+                    course_name, lab_name, submissions_file, key)
                 return jsonify({
                     'status': UPLOAD_STATUS.SUCCESS.value
                 }), 200
@@ -193,7 +200,7 @@ def add_submissions():
             return jsonify({
                 'status': UPLOAD_STATUS.UNSUPPORTED_FILE.value
             }), 400
-    elif method =="file-moss":
+    elif method == "file-moss":
         if 'submissions_file' not in request.files:
             return jsonify({'status': UPLOAD_STATUS.FILE_NOT_INCLUDED.value}), 400
         submissions_file = request.files['submissions_file']
@@ -239,9 +246,9 @@ def add_submissions():
 
     elif method == "import-ms":
         access_token = request.json['accessToken']
-        sheet_link = request.json['sheetLink']     
+        sheet_link = request.json['sheetLink']
         importer = import_submissions.MSImportSubmissions(
-                access_token, sheet_link, course_name, lab_name)
+            access_token, sheet_link, course_name, lab_name)
         try:
             importer.import_submissions()
             return "SUCCESS", 200
@@ -287,12 +294,13 @@ def get_results():
         course_name = request.args['course']
         lab_name = request.args['lab']
         results_type = request.args['type']
+        key = request.args['key']
     except KeyError:
         return jsonify({'status': "course, lab and type query parameters must be included"}), 400
 
     if results_type == "download":
         try:
-            return send_file(manager.compressed_results(course_name, lab_name))
+            return send_file(manager.compressed_results(course_name, lab_name, key))
         except:
             return jsonify({
                 'status': "Failed to fetch results, please make sure you run the grader first"
@@ -301,9 +309,9 @@ def get_results():
     elif results_type == "diff":
         # change it to (test_course)
         if course_name == "test_course":
-            #return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
+            # return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
             try:
-                return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
+                return jsonify(manager.run_grader_diff(course_name, lab_name, key)), 200
                 # return jsonify(manager.get_diff_results_file(course_name, lab_name)), 200
             except:
                 return jsonify({
@@ -315,9 +323,6 @@ def get_results():
         }), 500
 
 
-
-
-
 @app.route('/submissions/validate', methods=['POST'])
 def validate_import_source():
     """
@@ -326,7 +331,6 @@ def validate_import_source():
     access_token = request.json['accessToken']
     sheet_link = request.json['sheetLink']
     method = request.json['method']
-    
 
     if method == 'import-google':
 
@@ -357,27 +361,28 @@ def validate_import_source():
             return "Invalid sheet link", 400
 
 
-
-
 @app.route('/submissions', methods=["GET"])
 def get_submission_files():
     try:
         course_name = request.args['course']
         lab_name = request.args['lab']
+        key = request.args['key']
     except KeyError:
         return jsonify({'status': "course, lab and submission_id query parameters must be included"}), 400
     if('submission_id' in request.args):
         submission_id = request.args['submission_id']
         try:
-            files_list = manager.get_submission_files(course_name, lab_name, submission_id)
+            files_list = manager.get_submission_files(
+                course_name, lab_name, submission_id , key)
             return jsonify(files_list)
         except manager.SubmissionNotFoundError:
             return jsonify({'status': "Submission not found"}), 404
         except:
             return jsonify({'status': "An error occurred"}), 500
     else:
-        submissions_list = manager.get_submissions_list(course_name, lab_name)
+        submissions_list = manager.get_submissions_list(course_name, lab_name, key)
         return jsonify(submissions_list)
+
 
 @app.route('/submission_file', methods=["GET"])
 def get_submission_file_content():
@@ -386,16 +391,20 @@ def get_submission_file_content():
         lab_name = request.args['lab']
         submission_id = request.args['submission_id']
         file_name = request.args['file_name']
+        key = request.args['key']
+
+
     except KeyError:
         return jsonify({'status': "course, lab, submission_id and file_name query parameters must be included"}), 400
     try:
-        submission_file_content = manager.get_submission_file_content(course_name, lab_name, submission_id, file_name)
+        submission_file_content = manager.get_submission_file_content(
+            course_name, lab_name, submission_id, file_name, key)
         return jsonify({'status': "SUCCESS", 'file_content': submission_file_content})
     except manager.SubmissionFileNotFoundError:
         return jsonify({'status': "Submission file not found"}), 404
     except:
         return jsonify({'status': "An error occurred"}), 500
-    
+
 
 @app.route('/submissions', methods=["PUT"])
 def update_submission_file():
@@ -403,13 +412,15 @@ def update_submission_file():
         course_name = request.args['course']
         lab_name = request.args['lab']
         submission_id = request.args['submission_id']
+        key = request.args['key']
+
     except KeyError:
         return jsonify({'status': "course, lab and submission_id query parameters must be included"}), 400
     try:
-        manager.update_submission_files(course_name, lab_name, submission_id, request.files)
+        manager.update_submission_files(
+            course_name, lab_name, submission_id, request.files, key)
         return jsonify({'status': 'Files edited successfully'})
     except manager.SubmissionNotFoundError:
         return jsonify({'status': "Submission not found"}), 404
     except:
         return jsonify({'status': 'An error occurred'}), 500
-
