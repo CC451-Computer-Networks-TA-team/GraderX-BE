@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 from .lib import test_cases_parser as tc_parser
 import shutil
+from ...app_config import LAB_GUIDE_FILENAME
 
 
 def add_test_case_file(path, tc_name, data):
@@ -39,7 +40,7 @@ def clear_test_cases(course, lab):
 def create_lab_guide(course, lab, lab_guide_file):
     lab_path = get_lab_path(course, lab)
     file_name = lab_guide_file.filename
-    lab_guide_file.save(dst=(lab_path.joinpath('lab_guide.md')))
+    lab_guide_file.save(dst=(lab_path.joinpath(LAB_GUIDE_FILENAME)))
 
 
 def get_lab_path(course, lab):
