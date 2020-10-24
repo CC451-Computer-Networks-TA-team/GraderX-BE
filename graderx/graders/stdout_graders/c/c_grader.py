@@ -16,7 +16,7 @@ def get_lab_path(course, lab):
         f'../../../courses/{course}/labs/{lab}').resolve()
 
 
-def run_grader(course, lab):
+def run_grader(course, lab, public_testcases = None):
     """
     Compiles all the submissions in [lab_path/submissions/] directory, runs compiled submissions
     with stdin of the lab's test cases, then builds a dictionary that has all the submissions 
@@ -38,7 +38,7 @@ def run_grader(course, lab):
     }
     """
     LAB_ABS_PATH = get_lab_path(course, lab)
-    test_cases = tc_parser.get_test_cases(LAB_ABS_PATH)
+    test_cases = tc_parser.get_test_cases(LAB_ABS_PATH, public_testcases)
     submission_result_list = []
 
     # Looping over all the submissions in [lab_path/submissions/] directory, first compile the submission

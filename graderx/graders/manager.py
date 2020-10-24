@@ -78,13 +78,33 @@ def select_course_grader(course_name):
     else:
         raise InvalidConfigError()
 
+def get_public_testcases(course, lab):
+    courses_config = get_courses_config_if_course_exists(course)
+    target_course = courses_config[course]
+    target_lab_index = -1
+    for i, lab_ in enumerate(target_course['labs']):
+        if lab_['name'] == lab:
+            target_lab_index = i
+    if target_lab_index == -1:
+        raise LabNotFoundError
+    elif 'public_test_cases' not in target_course['labs'][target_lab_index]:
+        return []
+    else:
+        return courses_config[course]['labs'][target_lab_index]['public_test_cases']
 
-def run_grader(course_name, lab):
+def run_grader(course_name, lab, student = False):
     """
     All the possibly returned modules will have a run_grader function that will be invoked here
     """
     course_grader = select_course_grader(course_name)
-    course_grader.run_grader(course_name, lab)
+    if student:
+        public_testcases = get_public_testcases(course_name, lab)
+        if public_testcases:
+            course_grader.run_grader(course_name, lab, public_testcases)
+        else:
+            raise NoPublicTestcasesError
+    else:
+        course_grader.run_grader(course_name, lab)
 
 
 def run_grader_diff(course_name, lab):
@@ -283,6 +303,14 @@ def add_lab(course_id, lab_data, lab_guide = None):
     update_course_config(courses_config)
 
 
+def get_lab_guide(course, lab):
+    lab_guide_path = stdout_common.get_lab_guide(course, lab)
+    if lab_guide_path.exists():
+        return lab_guide_path
+    else:
+        raise LabHasNoGuideError
+
+
 def edit_lab(course_id, lab_data):
     courses_config = get_courses_config_if_course_exists(course_id)
     # Validate lab_data
@@ -320,8 +348,10 @@ class CourseNotFoundError(Exception):
 class LabNotFoundError(Exception):
     pass
 
+class LabHasNoGuideError(Exception):
+    pass
 
-class SubmissionNotFoundError(Exception):
+class NoPublicTestcasesError(Exception):
     pass
 
 
