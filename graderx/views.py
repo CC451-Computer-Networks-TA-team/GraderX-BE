@@ -33,23 +33,23 @@ def create_course():
         language = request.json['variant']
         labs = request.json['labs']
     except KeyError:
-        return jsonify({'status': "course name, language, and labs parameters must be included"}), 400
+        return jsonify({"message": "course name, language, and labs parameters must be included"}), 400
     try:
         manager.create_course(courseName, language, labs)
-        return "SUCCESS", 200
+        return jsonify({"message": "SUCCESS"}), 200
     except:
-        return "An error occured", 500
+        return jsonify({"message": "An error occured"}), 500
 
 
 @app.route('/courses/<course_name>', methods=['DELETE'])
 def delete_course(course_name):
     try:
         manager.delete_course(course_name)
-        return "SUCCESS", 200
+        return jsonify({"message": "SUCCESS"}), 200
     except manager.CourseNotFoundError:
-        return jsonify({"status": "Course Not Found"}), 404
+        return jsonify({"message": "Course Not Found"}), 404
     except:
-        return "An error occured", 500
+        return jsonify({"message": "An error occured"}), 500
 
 class UPLOAD_STATUS(Enum):
     """
@@ -83,48 +83,62 @@ def get_labs(course_name):
         labs = manager.get_all_labs_data(course_name)
         return jsonify({"labs": labs}) 
     except manager.CourseNotFoundError:
-        return jsonify({"status": "Course Not Found"}), 404
+        return jsonify({"message": "Course Not Found"}), 404
+
+@app.route('/courses/<course_name>/labs/<lab_id>/lab_guide')
+def get_lab_guide(course_name, lab_id):
+    try:
+        return send_file(manager.get_lab_guide(course_name, lab_id))
+    except manager.LabHasNoGuideError:
+        return jsonify({"message": "This lab does not have a guide"}), 404
+    except:
+        return jsonify({"message": "An error occured"}), 500
 
 @app.route('/courses/<course_name>/labs', methods=["POST"])
 def add_lab(course_name):
     try:
-        manager.add_lab(course_name, request.json)
-        return "SUCCESS", 200
+        lab_data = request.form.to_dict()
+        if 'lab_guide' in request.files:
+            manager.add_lab(course_name, lab_data, request.files['lab_guide'])
+        else:
+            manager.add_lab(course_name, lab_data)
+        return jsonify({"message": "SUCCESS"}), 200
     except manager.CourseNotFoundError:
-        return jsonify({"status": "Course Not Found"}), 404
+        return jsonify({"message": "Course Not Found"}), 404
     except manager.LabAlreadyExistsError:
-        return jsonify({"status": "Lab with this name already exists"}), 400
+        return jsonify({"message": "Lab with this name already exists"}), 400
     except manager.InvalidLabDataError:
-        return jsonify({"status": "Invalid lab data"}), 400
+        return jsonify({"message": "Invalid lab data"}), 400
     except:
-        return "An error occured", 500
+        return jsonify({"message": "An error occured"}), 500
     pass
 
 
 @app.route('/courses/<course_name>/labs/<lab_id>', methods=["PUT"])
 def edit_lab(course_name, lab_id):
     try:
-        manager.edit_lab(course_name, request.json)
-        return "SUCCESS", 200
+        lab_data = request.form.to_dict()
+        manager.edit_lab(course_name, lab_data)
+        return jsonify({"message": "SUCCESS"}), 200
     except manager.CourseNotFoundError:
-        return jsonify({"status": "Course Not Found"}), 404
+        return jsonify({"message": "Course Not Found"}), 404
     except manager.InvalidLabDataError:
-        return jsonify({"status": "Invalid lab data"}), 400
+        return jsonify({"message": "Invalid lab data"}), 400
     except manager.LabNotFoundError:
-        return jsonify({"status": "Lab not found"}), 404
+        return jsonify({"message": "Lab not found"}), 404
     except:
-        return "An error occured", 500
+        return jsonify({"message": "An error occured"}), 500
     pass
 
 @app.route('/courses/<course_name>/labs/<lab_id>', methods=["DELETE"])
 def delete_lab(course_name, lab_id):
     try:
         manager.delete_lab(course_name, lab_id)
-        return "SUCCESS", 200
+        return jsonify({"message": "SUCCESS"}), 200
     except manager.CourseNotFoundError:
-        return jsonify({"status": "Course Not Found"}), 404
+        return jsonify({"message": "Course Not Found"}), 404
     except:
-        return "An error occured", 500
+        return jsonify({"message": "An error occured"}), 500
 
 
 @app.route('/run_grader')
@@ -138,12 +152,17 @@ def start_grading():
         course_name = request.args['course']
         lab_name = request.args['lab']
     except KeyError:
-        return jsonify({'status': "course and lab query parameters must be included"}), 400
+        return jsonify({"message": "course and lab query parameters must be included"}), 400
     try:
-        manager.run_grader(course_name, lab_name)
-        return "SUCCESS", 200
+        if 'student' in request.args:
+            manager.run_grader(course_name, lab_name, student=True)
+        else:
+            manager.run_grader(course_name, lab_name)
+        return jsonify({"message": "SUCCESS"}), 200
     except:
-        return "Failed to run the grader", 500
+        return jsonify({
+                "message": "Failed to run the grader"
+            }), 500
 
 
 @app.route('/submissions', methods=['POST'])
@@ -163,19 +182,19 @@ def add_submissions():
         lab_name = request.args['lab']
         method = request.args['method']
     except KeyError:
-        return jsonify({'status': "course, lab and method query parameters must be included"}), 400
+        return jsonify({"message": "course, lab and method query parameters must be included"}), 400
     if method == "file":
         if 'submissions_file' not in request.files:
-            return jsonify({'status': UPLOAD_STATUS.FILE_NOT_INCLUDED.value}), 400
+            return jsonify({"message": UPLOAD_STATUS.FILE_NOT_INCLUDED.value}), 400
         submissions_file = request.files['submissions_file']
         if submissions_file.filename == '':
             return jsonify({
-                'status': UPLOAD_STATUS.FILE_NOT_SELECTED.value
+                "message": UPLOAD_STATUS.FILE_NOT_SELECTED.value
             }), 400
         # submissions_file will be falsy if the file is empty
         if not submissions_file:
             return jsonify({
-                'status': UPLOAD_STATUS.FILE_EMPTY.value
+                "message": UPLOAD_STATUS.FILE_EMPTY.value
             }), 400
         if allowed_file(submissions_file.filename):
             # TODO: secure filename
@@ -183,28 +202,28 @@ def add_submissions():
                 manager.add_submissions(
                     course_name, lab_name, submissions_file)
                 return jsonify({
-                    'status': UPLOAD_STATUS.SUCCESS.value
+                    "message": UPLOAD_STATUS.SUCCESS.value
                 }), 200
             except:
                 return jsonify({
-                    'status': UPLOAD_STATUS.GRADER_FAILED.value
+                    "message": UPLOAD_STATUS.GRADER_FAILED.value
                 }), 500
         else:
             return jsonify({
-                'status': UPLOAD_STATUS.UNSUPPORTED_FILE.value
+                "message": UPLOAD_STATUS.UNSUPPORTED_FILE.value
             }), 400
     elif method =="file-moss":
         if 'submissions_file' not in request.files:
-            return jsonify({'status': UPLOAD_STATUS.FILE_NOT_INCLUDED.value}), 400
+            return jsonify({"message": UPLOAD_STATUS.FILE_NOT_INCLUDED.value}), 400
         submissions_file = request.files['submissions_file']
         if submissions_file.filename == '':
             return jsonify({
-                'status': UPLOAD_STATUS.FILE_NOT_SELECTED.value
+                "message": UPLOAD_STATUS.FILE_NOT_SELECTED.value
             }), 400
         # submissions_file will be falsy if the file is empty
         if not submissions_file:
             return jsonify({
-                'status': UPLOAD_STATUS.FILE_EMPTY.value
+                "message": UPLOAD_STATUS.FILE_EMPTY.value
             }), 400
         if allowed_file(submissions_file.filename):
             # TODO: secure filename
@@ -214,11 +233,11 @@ def add_submissions():
                 return jsonify(res), 200
             except:
                 return jsonify({
-                    'status': UPLOAD_STATUS.GRADER_FAILED.value
+                    "message": UPLOAD_STATUS.GRADER_FAILED.value
                 }), 500
         else:
             return jsonify({
-                'status': UPLOAD_STATUS.UNSUPPORTED_FILE.value
+                "message": UPLOAD_STATUS.UNSUPPORTED_FILE.value
             }), 400
     elif method == "import-google":
         access_token = request.json['accessToken']
@@ -232,10 +251,10 @@ def add_submissions():
                 access_token, sheet_link, course_name, lab_name)
         try:
             importer.import_submissions()
-            return "SUCCESS", 200
+            return jsonify({"message": "SUCCESS"}), 200
         except:
             # TODO: handle detectable exceptions
-            return "Failed to import submissions", 500
+            return jsonify({"message": "Failed to import submissions"}), 500
 
     elif method == "import-ms":
         access_token = request.json['accessToken']
@@ -244,10 +263,10 @@ def add_submissions():
                 access_token, sheet_link, course_name, lab_name)
         try:
             importer.import_submissions()
-            return "SUCCESS", 200
+            return jsonify({"message": "SUCCESS"}), 200
         except:
             # TODO: handle detectable exceptions
-            return "Failed to import submissions", 500
+            return jsonify({"message": "Failed to import submissions"}), 500
 
 
 @app.route('/courses/<course_id>/edit', methods=["GET"])
@@ -255,9 +274,9 @@ def edit_course(course_id):
     try:
         course_data = manager.get_course_data_with_test_cases(course_id)
     except manager.CourseNotFoundError:
-        return jsonify({"status": "Course Not Found"}), 404
+        return jsonify({"message": "Course Not Found"}), 404
     except:
-        return "An error occured", 500
+        return jsonify({"message": "An error occured"}), 500
     return jsonify(course_data)
 
 
@@ -266,10 +285,10 @@ def update_course(course_id):
     try:
         manager.update_course_data(course_id, request.json)
     except manager.CourseNotFoundError:
-        return jsonify({"status": "Course Not Found"}), 404
+        return jsonify({"message": "Course Not Found"}), 404
     except:
-        return "An error occured", 500
-    return jsonify({"status": "Course updated successfuly"})
+        return jsonify({"message": "An error occured"}), 500
+    return jsonify({"message": "Course updated successfuly"})
 
 
 @app.route('/results')
@@ -288,14 +307,14 @@ def get_results():
         lab_name = request.args['lab']
         results_type = request.args['type']
     except KeyError:
-        return jsonify({'status': "course, lab and type query parameters must be included"}), 400
+        return jsonify({"message": "course, lab and type query parameters must be included"}), 400
 
     if results_type == "download":
         try:
             return send_file(manager.compressed_results(course_name, lab_name))
         except:
             return jsonify({
-                'status': "Failed to fetch results, please make sure you run the grader first"
+                "message": "Failed to fetch results, please make sure you run the grader first"
             }), 400
 
     elif results_type == "diff":
@@ -307,11 +326,11 @@ def get_results():
                 # return jsonify(manager.get_diff_results_file(course_name, lab_name)), 200
             except:
                 return jsonify({
-                    'status': "Failed to fetch diff results, please make sure you run the grader first"
+                    "message": "Failed to fetch diff results, please make sure you run the grader first"
                 }), 400
     else:
         return jsonify({
-            'status': "Failed to fetch results, please make sure you run the grader first"
+            "message": "Failed to fetch results, please make sure you run the grader first"
         }), 500
 
 
@@ -335,26 +354,26 @@ def validate_import_source():
                 access_token, sheet_link)
         except:
             # TODO: handle detectable exceptions
-            return "Invalid sheet link", 400
+            return jsonify({"message": "Invalid sheet link"}), 400
         try:
             importer.only_one_uploads_column()
-            return "SUCCESS", 200
+            return jsonify({"message": "SUCCESS"}), 200
         except import_submissions.TooManyUploadColumnsError as e:
             fields = importer.get_url_fields()
             return jsonify({'msg': str(e), 'fields': fields}), 400
         except import_submissions.InvalidSheetError as e:
             return str(e), 400
         except:
-            return "An unexpected error occured", 500
+            return jsonify({"message": "An unexpected error occured"}), 500
     elif method == 'import-ms':
         try:
             importer = import_submissions.MSImportSubmissions(
                 access_token, sheet_link)
-            return "SUCCESS", 200
+            return jsonify({"message": "SUCCESS"}), 200
 
         except:
             # TODO: handle detectable exceptions
-            return "Invalid sheet link", 400
+            return jsonify({"message": "Invalid sheet link"}), 400
 
 
 
@@ -365,16 +384,16 @@ def get_submission_files():
         course_name = request.args['course']
         lab_name = request.args['lab']
     except KeyError:
-        return jsonify({'status': "course, lab and submission_id query parameters must be included"}), 400
+        return jsonify({"message": "course, lab and submission_id query parameters must be included"}), 400
     if('submission_id' in request.args):
         submission_id = request.args['submission_id']
         try:
             files_list = manager.get_submission_files(course_name, lab_name, submission_id)
             return jsonify(files_list)
         except manager.SubmissionNotFoundError:
-            return jsonify({'status': "Submission not found"}), 404
+            return jsonify({"message": "Submission not found"}), 404
         except:
-            return jsonify({'status': "An error occurred"}), 500
+            return jsonify({"message": "An error occurred"}), 500
     else:
         submissions_list = manager.get_submissions_list(course_name, lab_name)
         return jsonify(submissions_list)
@@ -387,14 +406,14 @@ def get_submission_file_content():
         submission_id = request.args['submission_id']
         file_name = request.args['file_name']
     except KeyError:
-        return jsonify({'status': "course, lab, submission_id and file_name query parameters must be included"}), 400
+        return jsonify({"message": "course, lab, submission_id and file_name query parameters must be included"}), 400
     try:
         submission_file_content = manager.get_submission_file_content(course_name, lab_name, submission_id, file_name)
-        return jsonify({'status': "SUCCESS", 'file_content': submission_file_content})
+        return jsonify({"message": "SUCCESS", 'file_content': submission_file_content})
     except manager.SubmissionFileNotFoundError:
-        return jsonify({'status': "Submission file not found"}), 404
+        return jsonify({"message": "Submission file not found"}), 404
     except:
-        return jsonify({'status': "An error occurred"}), 500
+        return jsonify({"message": "An error occurred"}), 500
     
 
 @app.route('/submissions', methods=["PUT"])
@@ -404,12 +423,12 @@ def update_submission_file():
         lab_name = request.args['lab']
         submission_id = request.args['submission_id']
     except KeyError:
-        return jsonify({'status': "course, lab and submission_id query parameters must be included"}), 400
+        return jsonify({"message": "course, lab and submission_id query parameters must be included"}), 400
     try:
         manager.update_submission_files(course_name, lab_name, submission_id, request.files)
-        return jsonify({'status': 'Files edited successfully'})
+        return jsonify({"message": 'Files edited successfully'})
     except manager.SubmissionNotFoundError:
-        return jsonify({'status': "Submission not found"}), 404
+        return jsonify({"message": "Submission not found"}), 404
     except:
-        return jsonify({'status': 'An error occurred'}), 500
+        return jsonify({"message": 'An error occurred'}), 500
 

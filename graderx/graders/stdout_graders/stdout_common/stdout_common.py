@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 from .lib import test_cases_parser as tc_parser
 import shutil
+from ...app_config import LAB_GUIDE_FILENAME
 
 
 def add_test_case_file(path, tc_name, data):
@@ -35,6 +36,16 @@ def clear_test_cases(course, lab):
     test_cases_path = Path(__file__).joinpath(f"../../../courses/{course}/labs/{lab}/test_cases").resolve()
     if test_cases_path.exists():
         shutil.rmtree(str(test_cases_path))
+
+def create_lab_guide(course, lab, lab_guide_file):
+    lab_path = get_lab_path(course, lab)
+    file_name = lab_guide_file.filename
+    lab_guide_file.save(dst=(lab_path.joinpath(LAB_GUIDE_FILENAME)))
+
+def get_lab_guide(course, lab):
+    lab_path = get_lab_path(course, lab)
+    return lab_path.joinpath('lab_guide.md')
+
 
 def get_lab_path(course, lab):
     return Path(__file__).joinpath(
