@@ -3,6 +3,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 import gspread
 from . import manager
+from .lib import helpers
 from validator_collection.checkers import is_url
 from pathlib import Path
 import random
@@ -120,10 +121,11 @@ class GoogleImportSubmissions(ImportSubmissions):
             uploads_column = list(
                 map(lambda cell: is_url(cell), sheet_second_row)).index(True)
             sheet_uploads_col = self.sheet.col_values(uploads_column+1)
+        timestamp = helpers.current_timestamp()
         for i in range(1, len(sheet_uploads_col)):
-            self.save_to_lab(sheet_uploads_col[i])
+            self.save_to_lab(sheet_uploads_col[i], timestamp)
 
-    def save_to_lab(self, file_url):
+    def save_to_lab(self, file_url, timestamp):
         file_id = get_id_from_url(file_url)
         drive_service = build('drive', 'v3', credentials=self.credentials)
         # Call the Drive v3 API
@@ -137,7 +139,7 @@ class GoogleImportSubmissions(ImportSubmissions):
         file_name = drive_service.files().get(
             fileId=file_id).execute()['name']
         manager.save_single_submission(self.course, self.destination_lab,
-                                       file_in_memory, file_name)
+                                       file_in_memory, file_name, timestamp)
 
 
 class MSImportSubmissions(ImportSubmissions):
@@ -286,8 +288,9 @@ class MSImportSubmissions(ImportSubmissions):
 
         iterCol = iter(submission_list)
         next(iterCol)
+        timestamp = helpers.current_timestamp()
         for URL in iterCol:
-            self.save_to_lab(URL[0])
+            self.save_to_lab(URL[0], timestamp)
 
 
     def get_file_name(self, file_id, drive_id):
@@ -296,7 +299,7 @@ class MSImportSubmissions(ImportSubmissions):
         file_name = result['name']
         return file_name
 
-    def save_to_lab(self, file_URL):
+    def save_to_lab(self, file_URL, timestamp):
 
         shareID = self.convert_URL_to_ID(file_URL)
         file_id, drive_id = self.get_source_and_drive_id(shareID)
@@ -306,7 +309,7 @@ class MSImportSubmissions(ImportSubmissions):
         result = self.get_request(theRequest, False)
         file_in_memory = BytesIO(result.content)
         # call the manager
-        manager.save_single_submission(self.course, self.destination_lab,file_in_memory, file_name)
+        manager.save_single_submission(self.course, self.destination_lab,file_in_memory, file_name, timestamp)
 
 
     def convert_URL_to_ID(self, source):

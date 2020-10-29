@@ -8,6 +8,7 @@ from .lib import compile_submission as compiler
 from .lib import compute_results as compute_results
 from .lib import test_cases_parser as tc_parser
 from .lib.submissions_extraction import extract_submissions, clean_directory
+from ...lib import helpers
 import json
 
 
@@ -89,15 +90,19 @@ def add_submissions(course, lab, submissions_file):
     submissions_file in the [lab_path/submissions/] directory  
     """
     lab_path = get_lab_path(course, lab)
-    lab_path_str = str(lab_path)
+    timestamp = helpers.current_timestamp()
     # extract_submissions will clean the target submissions directory before extracting
-    extract_submissions(Path(
-        f"{lab_path_str}/submissions"), submissions_file)
+    extract_submissions(lab_path.joinpath(f'submissions/{timestamp}'), submissions_file)
+    return timestamp
 
 
-def save_single_submission(course, lab, file_in_memory, filename):
+# TODO: This function doesn't fit c grader since its submissions are directories not files
+def save_single_submission(course, lab, file_in_memory, filename, submission_key):
     lab_path = get_lab_path(course, lab)
-    lab_path.joinpath(f'submissions/{filename}').write_bytes(
+    submission_path = lab_path.joinpath(f'submissions/{submission_key}')
+    if not submission_path.exists():
+        submission_path.mkdir(parents=True)
+    submission_path.joinpath(f'{filename}').write_bytes(
         file_in_memory.getbuffer())
 
 
