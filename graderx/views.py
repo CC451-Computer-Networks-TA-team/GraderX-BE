@@ -137,10 +137,11 @@ def start_grading():
     try:
         course_name = request.args['course']
         lab_name = request.args['lab']
+        submission_key = request.args['key']
     except KeyError:
         return jsonify({'status': "course and lab query parameters must be included"}), 400
     try:
-        manager.run_grader(course_name, lab_name)
+        manager.run_grader(course_name, lab_name, submission_key)
         return "SUCCESS", 200
     except:
         return "Failed to run the grader", 500
@@ -287,12 +288,13 @@ def get_results():
         course_name = request.args['course']
         lab_name = request.args['lab']
         results_type = request.args['type']
+        submission_key = request.args['key']
     except KeyError:
         return jsonify({'status': "course, lab and type query parameters must be included"}), 400
 
     if results_type == "download":
         try:
-            return send_file(manager.compressed_results(course_name, lab_name))
+            return send_file(manager.compressed_results(course_name, lab_name, submission_key))
         except:
             return jsonify({
                 'status': "Failed to fetch results, please make sure you run the grader first"
@@ -303,7 +305,7 @@ def get_results():
         if course_name == "test_course":
             #return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
             try:
-                return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
+                return jsonify(manager.run_grader_diff(course_name, lab_name, submission_key)), 200
                 # return jsonify(manager.get_diff_results_file(course_name, lab_name)), 200
             except:
                 return jsonify({

@@ -73,17 +73,17 @@ def select_course_grader(course_name):
         raise InvalidConfigError()
 
 
-def run_grader(course_name, lab):
+def run_grader(course_name, lab, key):
     """
     All the possibly returned modules will have a run_grader function that will be invoked here
     """
     course_grader = select_course_grader(course_name)
-    course_grader.run_grader(course_name, lab)
+    course_grader.run_grader(course_name, lab, key)
 
 
-def run_grader_diff(course_name, lab):
+def run_grader_diff(course_name, lab, key):
     course_grader = select_course_grader(course_name)
-    return course_grader.get_diff_results_file(course_name, lab)
+    return course_grader.get_diff_results_file(course_name, lab, key)
 
 
 def add_submissions(course_name, lab, submissions_file):
@@ -120,13 +120,13 @@ def clear_submissions(course_name, lab):
     course_grader.clear_submissions(course_name, lab)
 
 
-def compressed_results(course_name, lab):
+def compressed_results(course_name, lab, key):
     """
     All the possibly returned modules will have a results_to_download function that will be invoked here
     """
     course_grader = select_course_grader(course_name)
     # returns a list of file paths
-    results_files = course_grader.results_to_download(course_name, lab)
+    results_files = course_grader.results_to_download(course_name, lab, key)
     # create a zip file of the returned file paths
     zip_file_path = helpers.create_zip_file(results_files)
     return zip_file_path

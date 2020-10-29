@@ -14,7 +14,7 @@ def get_lab_path(course, lab):
     return get_course_root(course).joinpath(lab)
 
 
-def run_grader(course, lab):
+def run_grader(course, lab, key=None):
     """
     Runs the tests in the given lab's corresponding pytest test file 
     which is test_run_grader.py in each lab directory  
@@ -86,7 +86,7 @@ def clear_submissions(course, lab):
     clean_directory(lab_path.joinpath('submissions/2020'))
 
 
-def results_to_download(course, lab):
+def results_to_download(course, lab, key=None):
     """
     Returns a list of files' Paths, these files could be one or more of the 4 files 
     mentioned in run_grader docstring. 
@@ -97,7 +97,7 @@ def results_to_download(course, lab):
 
 
 # TODO: delete it
-def get_diff_results_file(course_name, lab):
+def get_diff_results_file(course_name, lab, key=None):
     path = Path("graderx").joinpath("graders").joinpath("courses").joinpath(course_name).joinpath(lab)
     file_path = path.joinpath(f"{lab}_diff_result.json")
     with open(file_path) as f:
