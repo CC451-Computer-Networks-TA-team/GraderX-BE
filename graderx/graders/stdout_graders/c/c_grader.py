@@ -117,14 +117,14 @@ def results_to_download(course, lab, key):
     that have information about the grading process. 
     """
     lab_path = get_lab_path(course, lab)
-    return list(lab_path.glob(f"/submissions/{key}/**/*_results.txt")) + list(lab_path.glob(f"/submissions/{key}/**/*_result_summary.txt"))
+    return list(lab_path.glob(f"submissions/{key}/*/*_results.txt")) + list(lab_path.glob(f"submissions/{key}/*_result_summary.txt"))
 
 
 def get_diff_results_file(course_name, lab, key):
     path = Path("graderx").joinpath("graders").joinpath(
         "courses").joinpath(course_name).joinpath("labs").joinpath(lab)
     lab_path = get_lab_path(course_name, lab)
-    file_path = lab_path.joinpath(f"/submissions/{key}/{lab}_diff_result.json")
+    file_path = lab_path.joinpath(f"submissions/{key}/{lab}_diff_result.json")
     with open(file_path) as f:
         data = json.load(f)
     return data

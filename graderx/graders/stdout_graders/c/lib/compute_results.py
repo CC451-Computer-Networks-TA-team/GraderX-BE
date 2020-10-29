@@ -72,7 +72,7 @@ def write_internal_report(content, path):
 
 
 def write_summary_report(content, path, key):
-    file_name = path.joinpath(f'/submissions/{key}/{get_lab_name(path)}_result_summary.txt')
+    file_name = path.joinpath(f'submissions/{key}/{get_lab_name(path)}_result_summary.txt')
     pass_percentage = get_pass_percentage(content)
 
     if not os.path.exists(path):
@@ -103,7 +103,7 @@ def write_diff_json(submissions_list, path, key):
                  for item in submissions_list]
     diff_json = json.dumps(diff_list)
 
-    file_name = path.joinpath(f'/submissions/{key}/{get_lab_name(path)}_diff_result.json')
+    file_name = path.joinpath(f'submissions/{key}/{get_lab_name(path)}_diff_result.json')
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -113,7 +113,7 @@ def write_diff_json(submissions_list, path, key):
 
 def write_chart_json(submissions_list, path, grades_summary, key):
     chart_json = get_charts_json(submissions_list, grades_summary)
-    file_name = path.joinpath(f'/submissions/{key}/{get_lab_name(path)}_chart_result.json')
+    file_name = path.joinpath(f'submissions/{key}/{get_lab_name(path)}_chart_result.json')
     if not os.path.exists(path):
         os.makedirs(path)
 
