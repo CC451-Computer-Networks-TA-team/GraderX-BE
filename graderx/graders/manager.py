@@ -185,39 +185,32 @@ def get_all_labs_data(course_id):
             course_id, lab[LAB_NAME])
     return course_labs
 
-
-def get_submission_files(course, lab, submission_id):
+def get_submission_files(course, lab, submission_id, submission_key):
     course_grader = select_course_grader(course)
-    submission_files_paths = course_grader.get_submission_files(
-        course, lab, submission_id)
+    submission_files_paths = course_grader.get_submission_files(course, lab, submission_id, submission_key)
     if submission_files_paths:
         return list(map(lambda path: path.name, submission_files_paths))
     else:
         raise SubmissionNotFoundError
 
-
-def update_submission_files(course, lab, submission_id, submission_files):
+def update_submission_files(course, lab, submission_id, submission_files, submission_key):
     course_grader = select_course_grader(course)
     try:
-        course_grader.update_submission_files(
-            course, lab, submission_id, submission_files)
+        course_grader.update_submission_files(course, lab, submission_id, submission_files, submission_key)
     except FileNotFoundError:
         raise SubmissionNotFoundError
 
-
-def get_submission_file_content(course, lab, submission_id, file_name):
+def get_submission_file_content(course, lab, submission_id, file_name, submission_key):
     course_grader = select_course_grader(course)
     try:
-        submission_file_content = course_grader.get_submission_file_content(
-            course, lab, submission_id, file_name)
+        submission_file_content = course_grader.get_submission_file_content(course, lab, submission_id, file_name, submission_key)
         return submission_file_content
     except FileNotFoundError:
         raise SubmissionFileNotFoundError
 
-
-def get_submissions_list(course, lab):
+def get_submissions_list(course, lab, submission_key):
     course_grader = select_course_grader(course)
-    submissions_list = course_grader.get_not_fullmark_submissions(course, lab)
+    submissions_list = course_grader.get_not_fullmark_submissions(course, lab, submission_key)
     return submissions_list
 
 
@@ -228,12 +221,7 @@ def get_course_data(course_id):
         raise CourseNotFoundError()
     course_data[COURSE_NAME] = course_id
     return course_data
-
-
-def get_course_data_with_test_cases(course_id):
-    course_data = get_course_data(course_id)
     for index, lab in enumerate(course_data[COURSE_LABS]):
-        course_data[COURSE_LABS][index][LAB_TEST_CASES] = stdout_common.get_test_cases(
             course_id, lab[LAB_NAME])
     return course_data
 

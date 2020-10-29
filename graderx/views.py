@@ -385,19 +385,20 @@ def get_submission_files():
     try:
         course_name = request.args['course']
         lab_name = request.args['lab']
+        submission_key = request.args['key']
     except KeyError:
         return jsonify({"message": "course, lab and submission_id query parameters must be included"}), 400
     if('submission_id' in request.args):
         submission_id = request.args['submission_id']
         try:
-            files_list = manager.get_submission_files(course_name, lab_name, submission_id)
+            files_list = manager.get_submission_files(course_name, lab_name, submission_id, submission_key)
             return jsonify(files_list)
         except manager.SubmissionNotFoundError:
             return jsonify({"message": "Submission not found"}), 404
         except:
             return jsonify({"message": "An error occurred"}), 500
     else:
-        submissions_list = manager.get_submissions_list(course_name, lab_name)
+        submissions_list = manager.get_submissions_list(course_name, lab_name, submission_key)
         return jsonify(submissions_list)
 
 @app.route('/submission_file', methods=["GET"])
@@ -407,11 +408,12 @@ def get_submission_file_content():
         lab_name = request.args['lab']
         submission_id = request.args['submission_id']
         file_name = request.args['file_name']
+        submission_key = request.args['key']
     except KeyError:
-        return jsonify({"message": "course, lab, submission_id and file_name query parameters must be included"}), 400
+        return jsonify({'message': "course, lab, submission_id, file_name and submission key query parameters must be included"}), 400
     try:
-        submission_file_content = manager.get_submission_file_content(course_name, lab_name, submission_id, file_name)
-        return jsonify({"message": "SUCCESS", 'file_content': submission_file_content})
+        submission_file_content = manager.get_submission_file_content(course_name, lab_name, submission_id, file_name, submission_key)
+        return jsonify({'message': "SUCCESS", 'file_content': submission_file_content})
     except manager.SubmissionFileNotFoundError:
         return jsonify({"message": "Submission file not found"}), 404
     except:
@@ -424,11 +426,12 @@ def update_submission_file():
         course_name = request.args['course']
         lab_name = request.args['lab']
         submission_id = request.args['submission_id']
+        submission_key = request.args['key']
     except KeyError:
         return jsonify({"message": "course, lab and submission_id query parameters must be included"}), 400
     try:
-        manager.update_submission_files(course_name, lab_name, submission_id, request.files)
-        return jsonify({"message": 'Files edited successfully'})
+        manager.update_submission_files(course_name, lab_name, submission_id, request.files, submission_key)
+        return jsonify({'message': 'Files edited successfully'})
     except manager.SubmissionNotFoundError:
         return jsonify({"message": "Submission not found"}), 404
     except:
