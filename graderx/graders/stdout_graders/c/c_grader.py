@@ -17,7 +17,7 @@ def get_lab_path(course, lab):
         f'../../../courses/{course}/labs/{lab}').resolve()
 
 
-def run_grader(course, lab, public_testcases = None):
+def run_grader(course, lab, key, public_testcases = None):
     """
     Compiles all the submissions in [lab_path/submissions/] directory, runs compiled submissions
     with stdin of the lab's test cases, then builds a dictionary that has all the submissions 
@@ -46,10 +46,10 @@ def run_grader(course, lab, public_testcases = None):
     # then loop over all test_cases for this lab, run the compiled submissions with stdin of the test case input
     # then compare it to the test case output, if both matched add the test case id to the "passed" array
     # if not add the test case id along with the diff between outout and test case expected output to "failed" array
-    for _, dir, _ in os.walk(LAB_ABS_PATH.joinpath(f"submissions")):
+    for _, dir, _ in os.walk(LAB_ABS_PATH.joinpath(f"submissions/{key}")):
         for i in dir:
             submission_dir = str(
-                LAB_ABS_PATH.joinpath(f"submissions")) + f"/{i}"
+                LAB_ABS_PATH.joinpath(f"submissions/{key}")) + f"/{i}"
             compiler.compile_submission(Path(submission_dir))
 
             current_submission = {
@@ -81,7 +81,7 @@ def run_grader(course, lab, public_testcases = None):
             submission_result_list.append(current_submission)
                 
     # compute_total_result will take the results dict then create results files in the lab's directory
-    compute_results.compute_total_result(submission_result_list, LAB_ABS_PATH)
+    compute_results.compute_total_result(submission_result_list, LAB_ABS_PATH, key)
 
 
 def add_submissions(course, lab, submissions_file):
@@ -111,19 +111,20 @@ def clear_submissions(course, lab):
     clean_directory(lab_path.joinpath('submissions'))
 
 
-def results_to_download(course, lab):
+def results_to_download(course, lab, key):
     """
     Returns a list of files Paths, these files could be result files, crash logs or whatever files
     that have information about the grading process. 
     """
     lab_path = get_lab_path(course, lab)
-    return list(lab_path.glob("**/*_results.txt")) + list(lab_path.glob("**/*_result_summary.txt"))
+    return list(lab_path.glob(f"/submissions/{key}/**/*_results.txt")) + list(lab_path.glob(f"/submissions/{key}/**/*_result_summary.txt"))
 
 
-def get_diff_results_file(course_name, lab):
+def get_diff_results_file(course_name, lab, key):
     path = Path("graderx").joinpath("graders").joinpath(
         "courses").joinpath(course_name).joinpath("labs").joinpath(lab)
-    file_path = path.joinpath(f"{lab}_diff_result.json")
+    lab_path = get_lab_path(course_name, lab)
+    file_path = lab_path.joinpath(f"/submissions/{key}/{lab}_diff_result.json")
     with open(file_path) as f:
         data = json.load(f)
     return data

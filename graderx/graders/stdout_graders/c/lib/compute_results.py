@@ -7,7 +7,7 @@ import json
 pass_threshold = 50
 
 
-def compute_total_result(submissions_list, lab_abs_path):
+def compute_total_result(submissions_list, lab_abs_path, key):
     """
     generates some analysis for the submissions list
     """
@@ -17,12 +17,12 @@ def compute_total_result(submissions_list, lab_abs_path):
         grades_summary[item['id']] = grade
         failed_report = get_failed_cases(item['failed'])
         content = format_content(grade, failed_report)
-        path = get_path(lab_abs_path, item['id'])
+        path = get_path(lab_abs_path, item['id'], key)
         write_internal_report(content, path)
     # TODO: make write diff/chart consistant
-    write_diff_json(submissions_list, lab_abs_path)
-    write_chart_json(submissions_list, lab_abs_path, grades_summary)
-    write_summary_report(grades_summary, lab_abs_path)
+    write_diff_json(submissions_list, lab_abs_path, key)
+    write_chart_json(submissions_list, lab_abs_path, grades_summary, key)
+    write_summary_report(grades_summary, lab_abs_path, key)
 
 
 def handle_grades(id):
@@ -52,9 +52,9 @@ def compute_total_result_by_id(id_obj):
     return grade
 
 
-def get_path(lab_abs_path, student_id):
+def get_path(lab_abs_path, student_id, key):
 
-    the_path = lab_abs_path.joinpath('submissions').joinpath(student_id)
+    the_path = lab_abs_path.joinpath(f'submissions/{key}').joinpath(student_id)
     return the_path
 
 
@@ -71,8 +71,8 @@ def write_internal_report(content, path):
         out_file.write(content)
 
 
-def write_summary_report(content, path):
-    file_name = path.joinpath(f'{get_lab_name(path)}_result_summary.txt')
+def write_summary_report(content, path, key):
+    file_name = path.joinpath(f'/submissions/{key}/{get_lab_name(path)}_result_summary.txt')
     pass_percentage = get_pass_percentage(content)
 
     if not os.path.exists(path):
@@ -98,12 +98,12 @@ def format_content(grade, failed_reports):
     return f'* Total Grade: {grade}\n* Failed Test Cases:\n{failed_reports}'
 
 
-def write_diff_json(submissions_list, path):
+def write_diff_json(submissions_list, path, key):
     diff_list = [{"id": item["id"], "failed":item["failed"]}
                  for item in submissions_list]
     diff_json = json.dumps(diff_list)
 
-    file_name = path.joinpath(f'{get_lab_name(path)}_diff_result.json')
+    file_name = path.joinpath(f'/submissions/{key}/{get_lab_name(path)}_diff_result.json')
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -111,9 +111,9 @@ def write_diff_json(submissions_list, path):
         out_file.write(diff_json)
 
 
-def write_chart_json(submissions_list, path, grades_summary):
+def write_chart_json(submissions_list, path, grades_summary, key):
     chart_json = get_charts_json(submissions_list, grades_summary)
-    file_name = path.joinpath(f'{get_lab_name(path)}_chart_result.json')
+    file_name = path.joinpath(f'/submissions/{key}/{get_lab_name(path)}_chart_result.json')
     if not os.path.exists(path):
         os.makedirs(path)
 
