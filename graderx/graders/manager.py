@@ -221,9 +221,6 @@ def get_course_data(course_id):
         raise CourseNotFoundError()
     course_data[COURSE_NAME] = course_id
     return course_data
-    for index, lab in enumerate(course_data[COURSE_LABS]):
-            course_id, lab[LAB_NAME])
-    return course_data
 
 
 def update_course_data(course_id, new_course_data):
