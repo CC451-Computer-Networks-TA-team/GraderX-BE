@@ -42,10 +42,6 @@ def create_lab_guide(course, lab, lab_guide_file):
     file_name = lab_guide_file.filename
     lab_guide_file.save(dst=(lab_path.joinpath(LAB_GUIDE_FILENAME)))
 
-def get_lab_guide(course, lab):
-    lab_path = get_lab_path(course, lab)
-    return lab_path.joinpath('lab_guide.md')
-
 
 def get_lab_path(course, lab):
     return Path(__file__).joinpath(

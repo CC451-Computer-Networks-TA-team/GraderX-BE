@@ -143,3 +143,8 @@ def get_not_fullmark_submissions(course, lab):
     with open(file_path) as diff_file:
         diff_dict = json.load(diff_file)
     return [submission['id'] for submission in diff_dict]
+
+def get_lab_guide_content(course, lab):
+    lab_guide_path = get_lab_path(course, lab).joinpath('lab_guide.md')
+    lab_guide = open(lab_guide_path)
+    return lab_guide.read()

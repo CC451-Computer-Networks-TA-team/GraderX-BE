@@ -88,7 +88,8 @@ def get_labs(course_name):
 @app.route('/courses/<course_name>/labs/<lab_id>/lab_guide')
 def get_lab_guide(course_name, lab_id):
     try:
-        return send_file(manager.get_lab_guide(course_name, lab_id))
+        lab_guide_content = manager.get_lab_guide_content(course_name, lab_id)
+        return jsonify({"message": "SUCCESS", 'lab_guide': lab_guide_content})
     except manager.LabHasNoGuideError:
         return jsonify({"message": "This lab does not have a guide"}), 404
     except:
