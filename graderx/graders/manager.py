@@ -303,11 +303,12 @@ def add_lab(course_id, lab_data, lab_guide = None):
     update_course_config(courses_config)
 
 
-def get_lab_guide(course, lab):
-    lab_guide_path = stdout_common.get_lab_guide(course, lab)
-    if lab_guide_path.exists():
-        return lab_guide_path
-    else:
+def get_lab_guide_content(course, lab):
+    course_grader = select_course_grader(course)
+    try:
+        lab_guide_content = course_grader.get_lab_guide_content(course, lab)
+        return lab_guide_content
+    except FileNotFoundError:
         raise LabHasNoGuideError
 
 
