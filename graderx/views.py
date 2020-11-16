@@ -158,7 +158,7 @@ def start_grading():
         if 'student' in request.args:
             manager.run_grader(course_name, lab_name, submission_key, student=True)
         else:
-            manager.run_grader(course_name, lab_name)
+            manager.run_grader(course_name, lab_name, submission_key)
         return jsonify({"message": "SUCCESS"}), 200
     except:
         return jsonify({
