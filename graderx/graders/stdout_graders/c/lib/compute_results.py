@@ -7,7 +7,7 @@ import json
 pass_threshold = 50
 
 
-def compute_total_result(submissions_list, lab_abs_path):
+def compute_total_result(submissions_list, lab_abs_path, test_cases_count):
     """
     generates some analysis for the submissions list
     """
@@ -20,7 +20,7 @@ def compute_total_result(submissions_list, lab_abs_path):
         path = get_path(lab_abs_path, item['id'])
         write_internal_report(content, path)
     # TODO: make write diff/chart consistant
-    write_diff_json(submissions_list, lab_abs_path)
+    write_diff_json(submissions_list, lab_abs_path, test_cases_count)
     write_chart_json(submissions_list, lab_abs_path, grades_summary)
     write_summary_report(grades_summary, lab_abs_path)
 
@@ -98,9 +98,12 @@ def format_content(grade, failed_reports):
     return f'* Total Grade: {grade}\n* Failed Test Cases:\n{failed_reports}'
 
 
-def write_diff_json(submissions_list, path):
-    diff_list = [{"id": item["id"], "failed":item["failed"]}
+def write_diff_json(submissions_list, path, test_cases_count):
+    diff_list = {
+        "total_test_cases_count": test_cases_count,
+        "diff": [{"id": item["id"], "failed":item["failed"]}
                  for item in submissions_list]
+    }
     diff_json = json.dumps(diff_list)
 
     file_name = path.joinpath(f'{get_lab_name(path)}_diff_result.json')

@@ -80,7 +80,7 @@ def run_grader(course, lab, public_testcases = None):
             submission_result_list.append(current_submission)
                 
     # compute_total_result will take the results dict then create results files in the lab's directory
-    compute_results.compute_total_result(submission_result_list, LAB_ABS_PATH)
+    compute_results.compute_total_result(submission_result_list, LAB_ABS_PATH, len(test_cases))
 
 
 def add_submissions(course, lab, submissions_file):
@@ -142,7 +142,7 @@ def get_not_fullmark_submissions(course, lab):
     file_path = lab_path.joinpath(f"{lab}_diff_result.json")
     with open(file_path) as diff_file:
         diff_dict = json.load(diff_file)
-    return [submission['id'] for submission in diff_dict]
+    return [submission['id'] for submission in diff_dict['diff']]
 
 def get_lab_guide_content(course, lab):
     lab_guide_path = get_lab_path(course, lab).joinpath('lab_guide.md')
