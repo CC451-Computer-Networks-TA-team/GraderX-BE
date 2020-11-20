@@ -320,12 +320,12 @@ def get_results():
 
     elif results_type == "diff":
         # change it to (test_course)
-        if course_name == "test_course":
+        # if course_name == "test_course":
             #return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
-            try:
+        try:
                 return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
                 # return jsonify(manager.get_diff_results_file(course_name, lab_name)), 200
-            except:
+        except:
                 return jsonify({
                     "message": "Failed to fetch diff results, please make sure you run the grader first"
                 }), 400
