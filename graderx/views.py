@@ -248,7 +248,7 @@ def add_submissions():
             importer = import_submissions.GoogleImportSubmissions(
                 access_token, sheet_link, course_name, lab_name, request.args.get('field'))
         else:
-            importer = import_submissions.MSImportSubmissions(
+            importer = import_submissions.GoogleImportSubmissions(
                 access_token, sheet_link, course_name, lab_name)
         try:
             importer.import_submissions()
