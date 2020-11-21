@@ -60,7 +60,7 @@ def run_grader(course, lab):
             # and results/ directory as all the previously graded labs not only the most recent
             # the files in res/ are the ones that will be downloaded
             cmd = shlex.split(
-                f"python {course_path}/lib/console_log_parser.py {lab_number} {course_path}/res/{lab}")
+                f"python {course_path}/lib/console_log_parser.py {lab_number} {course_path}/res")
             subprocess.run(cmd, stdin=fi, stdout=fo)
 
 
@@ -121,7 +121,7 @@ def get_submission_file_content(course, lab, submission_id, file_name):
 def get_not_fullmark_submissions(course, lab):
     lab_path = get_lab_path(course, lab)
     submissions_path = lab_path.joinpath('submissions/2020')
-    grades_file_path = get_course_root(course).joinpath(f'res/{lab}')
+    grades_file_path = get_course_root(course).joinpath(f'res/{lab}_grade_summary.csv')
     with open(grades_file_path) as grades_file:
         not_fullmark_students_with_grades = grades_file.readlines()
     not_fullmark_students = []
