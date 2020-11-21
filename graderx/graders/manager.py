@@ -26,6 +26,15 @@ def get_courses_config_if_course_exists(course_name):
         raise CourseNotFoundError
     return courses_config
 
+def get_lab_object(course, lab):
+    courses_config = get_courses_config_if_course_exists(course)
+    target_lab_index = -1
+    for i, lab_ in enumerate(courses_config[course]['labs']):
+        if lab_['name'] == lab:
+            target_lab_index = i
+    if target_lab_index == -1:
+        raise LabNotFoundError
+    return courses_config[course]['labs'][target_lab_index]
 
 def update_course_config(course_config_dict):
     """
@@ -79,32 +88,27 @@ def select_course_grader(course_name):
         raise InvalidConfigError()
 
 def get_public_testcases(course, lab):
-    courses_config = get_courses_config_if_course_exists(course)
-    target_course = courses_config[course]
-    target_lab_index = -1
-    for i, lab_ in enumerate(target_course['labs']):
-        if lab_['name'] == lab:
-            target_lab_index = i
-    if target_lab_index == -1:
-        raise LabNotFoundError
-    elif 'public_test_cases' not in target_course['labs'][target_lab_index]:
+    lab_object = get_lab_object(course, lab)
+    if 'public_test_cases' not in lab_object:
         return []
     else:
-        return courses_config[course]['labs'][target_lab_index]['public_test_cases']
+        return lab_object['public_test_cases']
 
 def run_grader(course_name, lab, student = False):
     """
     All the possibly returned modules will have a run_grader function that will be invoked here
     """
     course_grader = select_course_grader(course_name)
+    lab_object = get_lab_object(course_name, lab)
+    runtime_limit = lab_object['runtime_limit']
     if student:
         public_testcases = get_public_testcases(course_name, lab)
         if public_testcases:
-            course_grader.run_grader(course_name, lab, public_testcases)
+            course_grader.run_grader(course_name, lab, runtime_limit , public_testcases)
         else:
             raise NoPublicTestcasesError
     else:
-        course_grader.run_grader(course_name, lab)
+        course_grader.run_grader(course_name, lab, runtime_limit)
 
 
 def run_grader_diff(course_name, lab):
