@@ -16,7 +16,7 @@ def get_lab_path(course, lab):
         f'../../../courses/{course}/labs/{lab}').resolve()
 
 
-def run_grader(course, lab, public_testcases = None):
+def run_grader(course, lab, runtime_limit = None, public_testcases = None):
     """
     Compiles all the submissions in [lab_path/submissions/] directory, runs compiled submissions
     with stdin of the lab's test cases, then builds a dictionary that has all the submissions 
@@ -59,8 +59,12 @@ def run_grader(course, lab, public_testcases = None):
             for tc in test_cases:
                 exec_command = f"./a.out"
                 cmd = shlex.split(exec_command)
-                cprocess = subprocess.run(
-                    cmd, input=tc[1], cwd=submission_dir, capture_output=True, text=True)
+                exceeded_runtime_limit = False
+                try:
+                    cprocess = subprocess.run(
+                        cmd, input=tc[1], cwd=submission_dir, capture_output=True, text=True, timeout=runtime_limit)
+                except subprocess.TimeoutExpired:
+                    exceeded_runtime_limit = True
                 differences = ""
                 for line in difflib.context_diff(cprocess.stdout, tc[2]):
                     differences += line + "\n"
@@ -68,7 +72,9 @@ def run_grader(course, lab, public_testcases = None):
                    current_submission["passed"].append(tc[0])
                 else:
                     student_output = ""
-                    if cprocess.returncode != 0:
+                    if exceeded_runtime_limit:
+                        student_output = "RUNTIME LIMIT EXCEEDED"
+                    elif cprocess.returncode != 0:
                         student_output = "ERROR"
                     else:
                         student_output = cprocess.stdout
