@@ -5,6 +5,9 @@ import os
 from .lib.submissions_extraction import extract_submissions, clean_directory
 import json
 
+GRADER_TYPE = "unittest"
+GRADER_VARIANT = "pytest"
+
 def get_course_root(course):
     return Path(__file__).joinpath(
         f'../../../courses/{course}/app/').resolve()
@@ -14,7 +17,7 @@ def get_lab_path(course, lab):
     return get_course_root(course).joinpath(lab)
 
 
-def run_grader(course, lab):
+def run_grader(course, lab, student=False):
     """
     Runs the tests in the given lab's corresponding pytest test file 
     which is test_run_grader.py in each lab directory  
@@ -37,14 +40,17 @@ def run_grader(course, lab):
     course_path = get_course_root(course)
     lab_path = get_lab_path(course, lab)
     lab_path_str = str(lab_path)
+    student_tests_filter = ""
     # If "GRADERX_FJ" environment variable is set to "ENABLED"
     # run the tests with the firejail profile in the lab directory else run normally
+    if student:
+        student_tests_filter = "-m student"
     if ("GRADERX_FJ" in os.environ) and os.environ['GRADERX_FJ'] == "ENABLED":
         cmd = shlex.split(
-            f"firejail --profile={lab_path_str}/firejail.profile pytest -vv --tb=short --show-capture=no {lab_path_str}/test_run_grader.py")
+            f"firejail --profile={lab_path_str}/firejail.profile pytest {student_tests_filter} -vv --tb=short --show-capture=no {lab_path_str}/test_run_grader.py")
     else:
         cmd = shlex.split(
-            f"pytest -vv --tb=short --show-capture=no {lab_path_str}/test_run_grader.py")
+            f"pytest {student_tests_filter} -vv --tb=short --show-capture=no {lab_path_str}/test_run_grader.py")
     file_name = "output.txt"
     with open(file_name, "w+") as f:
         subprocess.run(cmd, stdout=f)
@@ -136,3 +142,8 @@ def get_not_fullmark_submissions(course, lab):
             if student in submission_name:
                 not_fullmark_submissions.add('.'.join(submission_name.split('.')[0:-1]))
     return list(not_fullmark_submissions)
+
+def get_lab_guide_content(course, lab):
+    lab_guide_path = get_lab_path(course, lab).joinpath('lab_guide.md')
+    lab_guide = open(lab_guide_path)
+    return lab_guide.read()

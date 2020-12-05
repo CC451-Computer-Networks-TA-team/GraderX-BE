@@ -98,11 +98,14 @@ def run_grader(course_name, lab, student = False):
     """
     course_grader = select_course_grader(course_name)
     if student:
-        public_testcases = get_public_testcases(course_name, lab)
-        if public_testcases:
-            course_grader.run_grader(course_name, lab, public_testcases)
+        if course_grader.GRADER_TYPE == "unittest":
+            course_grader.run_grader(course_name, lab, student=True)
         else:
-            raise NoPublicTestcasesError
+            public_testcases = get_public_testcases(course_name, lab)
+            if public_testcases:
+                course_grader.run_grader(course_name, lab, public_testcases)
+            else:
+                raise NoPublicTestcasesError
     else:
         course_grader.run_grader(course_name, lab)
 

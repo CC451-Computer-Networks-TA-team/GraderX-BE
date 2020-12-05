@@ -11,6 +11,9 @@ from .lib.submissions_extraction import extract_submissions, clean_directory
 import json
 
 
+GRADER_TYPE = "stdout"
+GRADER_VARIANT = "c"
+
 def get_lab_path(course, lab):
     return Path(__file__).joinpath(
         f'../../../courses/{course}/labs/{lab}').resolve()
