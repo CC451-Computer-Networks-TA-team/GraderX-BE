@@ -176,7 +176,6 @@ class MSImportSubmissions(ImportSubmissions):
     def check_link_source(URL):
         """ checks if the link for Google or OneDrive """
         url_parsed = urllib.parse.urlparse(URL).netloc
-        #url_parsed == 'docs.google.com'
         if url_parsed == 'alexuuni-my.sharepoint.com':
             return 'ms forms'
         elif url_parsed == 'docs.google.com':
@@ -215,22 +214,22 @@ class MSImportSubmissions(ImportSubmissions):
 
 
     def get_source_and_drive_id(self, shareID):
-        theRequest = f'{self.ENDPOINT_SHARE}/{shareID}/driveItem/'
-        excel_info = self.get_request(f'{self.ENDPOINT_SHARE}/{shareID}/driveItem/')
+        the_request = f'{self.ENDPOINT_SHARE}/{shareID}/driveItem/'
+        excel_info = self.get_request(the_request)
         excel_id = excel_info['id']
         drive_id = excel_info['parentReference']['driveId']
         return excel_id, drive_id
 
 
     def check_URL(self, column):
-        iterCol = iter(column)
+        iter_col = iter(column)
         # skip first cell, it's a title
-        next(iterCol)
+        next(iter_col)
         # for cell in iterCol:
         #     if checkers.is_url(cell[0]):
         #         return True
         # return False
-        for cell in iterCol:
+        for cell in iter_col:
             if not checkers.is_url(cell[0]):
                 return False
         return True
@@ -238,14 +237,14 @@ class MSImportSubmissions(ImportSubmissions):
 
     def get_column_range(self):
         default_sheet = 'Form1'
-        theRequest = f'{self.ENDPOINT_Drives}/{self.drive_id}/items/{self.excel_id}/workbook/worksheets/{default_sheet}/Usedrange/columnCount'
-        result = self.get_request(theRequest)
+        the_request = f'{self.ENDPOINT_Drives}/{self.drive_id}/items/{self.excel_id}/workbook/worksheets/{default_sheet}/Usedrange/columnCount'
+        result = self.get_request(the_request)
         columns_number = result['value']
         return columns_number
 
 
     def open_sheet(self, spreadsheet_link):
-        shareID = self.convert_URL_to_ID(spreadsheet_link)
+        shareID = self.convert_url_to_id(spreadsheet_link)
         self.excel_id, self.drive_id = self.get_source_and_drive_id(shareID)
         # get submission_columns
         self.sub_list = self.only_one_uploads_column()
@@ -254,13 +253,15 @@ class MSImportSubmissions(ImportSubmissions):
     def only_one_uploads_column(self):
         """
         Checks each column in the usedRange to count # of columns with URLs,
+        Searches for Form1 sheet
         """
         column_count = self.get_column_range()
+        # TODO: make default sheet, the first sheet
         default_sheet = 'Form1'
         column_list = []
         for i in range(0,column_count):
-            theRequest = f'{self.ENDPOINT_Drives}/{self.drive_id}/items/{self.excel_id}/workbook/worksheets/{default_sheet}/Usedrange/column(column={i})?$select=text'
-            result = self.get_request(theRequest)
+            the_request = f'{self.ENDPOINT_Drives}/{self.drive_id}/items/{self.excel_id}/workbook/worksheets/{default_sheet}/Usedrange/column(column={i})?$select=text'
+            result = self.get_request(the_request)
             column_list.append(result['text'])
         url_lists = [self.check_URL(col) for col in column_list]
         no_of_url_lists = url_lists.count(True)
@@ -296,9 +297,8 @@ class MSImportSubmissions(ImportSubmissions):
         file_name = result['name']
         return file_name
 
-    def save_to_lab(self, file_URL):
-
-        shareID = self.convert_URL_to_ID(file_URL)
+    def save_to_lab(self, file_url):
+        shareID = self.convert_url_to_id(file_url)
         file_id, drive_id = self.get_source_and_drive_id(shareID)
         file_name = self.get_file_name(file_id, drive_id)
 
@@ -309,7 +309,7 @@ class MSImportSubmissions(ImportSubmissions):
         manager.save_single_submission(self.course, self.destination_lab,file_in_memory, file_name)
 
 
-    def convert_URL_to_ID(self, source):
+    def convert_url_to_id(self, source):
         x = base64.b64encode(bytes(source,'utf-8')).decode("utf-8")
         x = 'u!' + x.replace('/','_').replace('+','-').strip('=')
         return x

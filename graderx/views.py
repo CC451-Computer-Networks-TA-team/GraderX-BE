@@ -257,12 +257,14 @@ def add_submissions():
             # TODO: handle detectable exceptions
             return jsonify({"message": "Failed to import submissions"}), 500
 
+    ## TODO: fix bug (incomplete import)
     elif method == "import-ms":
         access_token = request.json['accessToken']
         sheet_link = request.json['sheetLink']     
-        importer = import_submissions.MSImportSubmissions(
-                access_token, sheet_link, course_name, lab_name)
         try:
+            importer = import_submissions.MSImportSubmissions(
+                access_token, sheet_link, course_name, lab_name)
+       
             importer.import_submissions()
             return jsonify({"message": "SUCCESS"}), 200
         except:
