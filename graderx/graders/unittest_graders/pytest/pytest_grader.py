@@ -4,8 +4,10 @@ import subprocess
 import os
 from .lib.submissions_extraction import extract_submissions, clean_directory
 import json
+from ...lib.helpers import GRADER_TYPES
 
-GRADER_TYPE = "unittest"
+
+GRADER_TYPE = GRADER_TYPES.UNITTEST
 GRADER_VARIANT = "pytest"
 
 def get_course_root(course):

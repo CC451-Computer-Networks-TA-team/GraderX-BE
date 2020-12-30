@@ -9,9 +9,12 @@ from .lib import compute_results as compute_results
 from .lib import test_cases_parser as tc_parser
 from .lib.submissions_extraction import extract_submissions, clean_directory
 import json
+from ...lib.helpers import GRADER_TYPES
 
 
-GRADER_TYPE = "stdout"
+
+
+GRADER_TYPE = GRADER_TYPES.STDOUT
 GRADER_VARIANT = "c"
 
 def get_lab_path(course, lab):

@@ -2,7 +2,7 @@ import json
 from .stdout_graders.c import c_grader
 from .unittest_graders.pytest import pytest_grader
 from pathlib import Path
-from .lib import helpers
+from .lib.helpers import create_zip_file, GRADER_TYPES
 import os
 from .moss import moss
 from .stdout_graders.c.lib import submissions_extraction
@@ -10,6 +10,7 @@ from .stdout_graders.stdout_common import stdout_common
 from .app_config import ( COURSES_DATA_PATH, MOSS_PATH, COURSE_NAME,
     COURSE_TYPE, COURSE_VARIANT, COURSE_LABS, LAB_NAME, 
     DISABLE_INTERNET, LAB_RUNTIME_LIMIT, LAB_TEST_CASES, PUBLIC_TEST_CASES )
+
 
 
 def get_courses_config():
@@ -98,7 +99,7 @@ def run_grader(course_name, lab, student = False):
     """
     course_grader = select_course_grader(course_name)
     if student:
-        if course_grader.GRADER_TYPE == "unittest":
+        if course_grader.GRADER_TYPE == GRADER_TYPES.UNITTEST:
             course_grader.run_grader(course_name, lab, student=True)
         else:
             public_testcases = get_public_testcases(course_name, lab)
@@ -156,7 +157,7 @@ def compressed_results(course_name, lab):
     # returns a list of file paths
     results_files = course_grader.results_to_download(course_name, lab)
     # create a zip file of the returned file paths
-    zip_file_path = helpers.create_zip_file(results_files)
+    zip_file_path = create_zip_file(results_files)
     return zip_file_path
 
 
