@@ -124,10 +124,7 @@ def add_submissions(course_name, lab, submissions_file):
     course_grader.add_submissions(course_name, lab, submissions_file)
 
 
-def apply_moss(submissions_file, moss_parameters, course_name='cc451', lab='lab3'):
-    """
-    All the possibly returned modules will have a add_submissions function that will be invoked here
-    """
+def apply_moss(submissions_file, moss_parameters):
     submissions_extraction.extract_submissions(MOSS_PATH, submissions_file)
     moss_ = moss.Moss()
     moss_.set_config(moss_parameters, MOSS_PATH)
