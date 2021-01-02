@@ -179,11 +179,14 @@ def add_submissions():
     and sheet_link to be imported from
     """
     try:
-        course_name = request.args['course']
-        lab_name = request.args['lab']
         method = request.args['method']
     except KeyError:
-        return jsonify({"message": "course, lab and method query parameters must be included"}), 400
+        return jsonify({"message": "method query parameter must be included"}), 400
+    try:
+        course_name = request.args['course']
+        lab_name = request.args['lab']
+    except KeyError:
+        pass
     if method == "file":
         if 'submissions_file' not in request.files:
             return jsonify({"message": UPLOAD_STATUS.FILE_NOT_INCLUDED.value}), 400
