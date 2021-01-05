@@ -19,6 +19,7 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
 @app.route('/course', methods=['POST'])
 def create_course():
     """
@@ -51,6 +52,7 @@ def delete_course(course_name):
     except:
         return jsonify({"message": "An error occured"}), 500
 
+
 class UPLOAD_STATUS(Enum):
     """
     Status messages sent to the client
@@ -69,7 +71,7 @@ def get_courses():
     stdout = False
     if 'STDOUT' in request.args:
         stdout = True
-    return jsonify({"courses": manager.get_all_courses_data(only_stdout = stdout)})
+    return jsonify({"courses": manager.get_all_courses_data(only_stdout=stdout)})
 
 
 @app.route('/courses/<course_name>/labs')
@@ -81,9 +83,10 @@ def get_labs(course_name):
     """
     try:
         labs = manager.get_all_labs_data(course_name)
-        return jsonify({"labs": labs}) 
+        return jsonify({"labs": labs})
     except manager.CourseNotFoundError:
         return jsonify({"message": "Course Not Found"}), 404
+
 
 @app.route('/courses/<course_name>/labs/<lab_id>/lab_guide')
 def get_lab_guide(course_name, lab_id):
@@ -94,6 +97,7 @@ def get_lab_guide(course_name, lab_id):
         return jsonify({"message": "This lab does not have a guide"}), 404
     except:
         return jsonify({"message": "An error occured"}), 500
+
 
 @app.route('/courses/<course_name>/labs', methods=["POST"])
 def add_lab(course_name):
@@ -131,6 +135,7 @@ def edit_lab(course_name, lab_id):
         return jsonify({"message": "An error occured"}), 500
     pass
 
+
 @app.route('/courses/<course_name>/labs/<lab_id>', methods=["DELETE"])
 def delete_lab(course_name, lab_id):
     try:
@@ -162,12 +167,13 @@ def start_grading():
         return jsonify({"message": "SUCCESS"}), 200
     except:
         return jsonify({
-                "message": "Failed to run the grader"
-            }), 500
+            "message": "Failed to run the grader"
+        }), 500
 
 
 @app.route('/submissions', methods=['POST'])
 def add_submissions():
+    # TODO: REFACTOR THIS!!!!!
     """
     Takes 3 query paramteres "course", "lab" and "method"
     "method" determines how these submissions are added
@@ -216,7 +222,15 @@ def add_submissions():
             return jsonify({
                 "message": UPLOAD_STATUS.UNSUPPORTED_FILE.value
             }), 400
-    elif method =="file-moss":
+    elif method == "file-moss":
+        if "useExisting" in request.args:
+            try:
+                res = manager.apply_moss(course_name, lab_name, request.form)
+                return jsonify(res), 200
+            except:
+                return jsonify({
+                    "message": "an error occured"
+                }), 500
         if 'submissions_file' not in request.files:
             return jsonify({"message": UPLOAD_STATUS.FILE_NOT_INCLUDED.value}), 400
         submissions_file = request.files['submissions_file']
@@ -233,7 +247,7 @@ def add_submissions():
             # TODO: secure filename
             try:
                 res = manager.apply_moss(
-                    submissions_file, request.form)
+                    course_name, lab_name, request.form, submissions_file=submissions_file, clearSubs='clearSubs' in request.args)
                 return jsonify(res), 200
             except:
                 return jsonify({
@@ -262,9 +276,9 @@ def add_submissions():
 
     elif method == "import-ms":
         access_token = request.json['accessToken']
-        sheet_link = request.json['sheetLink']     
+        sheet_link = request.json['sheetLink']
         importer = import_submissions.MSImportSubmissions(
-                access_token, sheet_link, course_name, lab_name)
+            access_token, sheet_link, course_name, lab_name)
         try:
             importer.import_submissions()
             return jsonify({"message": "SUCCESS"}), 200
@@ -324,21 +338,18 @@ def get_results():
     elif results_type == "diff":
         # change it to (test_course)
         # if course_name == "test_course":
-            #return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
+        # return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
         try:
-                return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
-                # return jsonify(manager.get_diff_results_file(course_name, lab_name)), 200
+            return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
+            # return jsonify(manager.get_diff_results_file(course_name, lab_name)), 200
         except:
-                return jsonify({
-                    "message": "Failed to fetch diff results, please make sure you run the grader first"
-                }), 400
+            return jsonify({
+                "message": "Failed to fetch diff results, please make sure you run the grader first"
+            }), 400
     else:
         return jsonify({
             "message": "Failed to fetch results, please make sure you run the grader first"
         }), 500
-
-
-
 
 
 @app.route('/submissions/validate', methods=['POST'])
@@ -349,7 +360,6 @@ def validate_import_source():
     access_token = request.json['accessToken']
     sheet_link = request.json['sheetLink']
     method = request.json['method']
-    
 
     if method == 'import-google':
 
@@ -380,8 +390,6 @@ def validate_import_source():
             return jsonify({"message": "Invalid sheet link"}), 400
 
 
-
-
 @app.route('/submissions', methods=["GET"])
 def get_submission_files():
     try:
@@ -392,7 +400,8 @@ def get_submission_files():
     if('submission_id' in request.args):
         submission_id = request.args['submission_id']
         try:
-            files_list = manager.get_submission_files(course_name, lab_name, submission_id)
+            files_list = manager.get_submission_files(
+                course_name, lab_name, submission_id)
             return jsonify(files_list)
         except manager.SubmissionNotFoundError:
             return jsonify({"message": "Submission not found"}), 404
@@ -401,6 +410,7 @@ def get_submission_files():
     else:
         submissions_list = manager.get_submissions_list(course_name, lab_name)
         return jsonify(submissions_list)
+
 
 @app.route('/submission_file', methods=["GET"])
 def get_submission_file_content():
@@ -412,13 +422,14 @@ def get_submission_file_content():
     except KeyError:
         return jsonify({"message": "course, lab, submission_id and file_name query parameters must be included"}), 400
     try:
-        submission_file_content = manager.get_submission_file_content(course_name, lab_name, submission_id, file_name)
+        submission_file_content = manager.get_submission_file_content(
+            course_name, lab_name, submission_id, file_name)
         return jsonify({"message": "SUCCESS", 'file_content': submission_file_content})
     except manager.SubmissionFileNotFoundError:
         return jsonify({"message": "Submission file not found"}), 404
     except:
         return jsonify({"message": "An error occurred"}), 500
-    
+
 
 @app.route('/submissions', methods=["PUT"])
 def update_submission_file():
@@ -429,10 +440,10 @@ def update_submission_file():
     except KeyError:
         return jsonify({"message": "course, lab and submission_id query parameters must be included"}), 400
     try:
-        manager.update_submission_files(course_name, lab_name, submission_id, request.files)
+        manager.update_submission_files(
+            course_name, lab_name, submission_id, request.files)
         return jsonify({"message": 'Files edited successfully'})
     except manager.SubmissionNotFoundError:
         return jsonify({"message": "Submission not found"}), 404
     except:
         return jsonify({"message": 'An error occurred'}), 500
-

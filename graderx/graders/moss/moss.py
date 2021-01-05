@@ -52,3 +52,7 @@ class Moss:
         result['url'] = opt[len(opt) -2]
 
         return result
+
+
+def generate_moss_lab_path(MOSS_PATH, course, lab):
+    return Path(MOSS_PATH, course, lab).resolve()
