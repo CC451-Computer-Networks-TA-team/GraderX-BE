@@ -279,10 +279,6 @@ class MSImportSubmissions(ImportSubmissions):
     def import_submissions(self):
 
         submission_list = self.sub_list
-        #clean directory
-        #curr_dir = str(Path(__file__).parent.resolve())
-        # manager.clean_directory(Path(
-        #     f"{curr_dir}/courses/cc451/app/{self.destination_lab}/submissions/2020"))
 
         iterCol = iter(submission_list)
         next(iterCol)

@@ -29,7 +29,7 @@ class Moss:
                 command.append(self.config[key])
 
         actual_files = []
-        files = glob.glob(str(self.files_path.resolve()) + '/**/*', recursive = True) 
+        files = self.files_path.rglob('*')
         files = [f for f in files if os.path.isfile(f)]
         actual_files.extend(list(map(lambda file: os.path.relpath(file, self.files_path.resolve()), files)))
 

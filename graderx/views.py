@@ -336,9 +336,6 @@ def get_results():
             }), 400
 
     elif results_type == "diff":
-        # change it to (test_course)
-        # if course_name == "test_course":
-        # return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
         try:
             return jsonify(manager.run_grader_diff(course_name, lab_name)), 200
             # return jsonify(manager.get_diff_results_file(course_name, lab_name)), 200
