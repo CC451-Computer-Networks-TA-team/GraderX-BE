@@ -108,7 +108,12 @@ def run_grader(course_name, lab, student = False):
         else:
             public_testcases = get_public_testcases(course_name, lab)
             if public_testcases:
-                course_grader.run_grader(course_name, lab, public_testcases)
+                course_grader.run_grader(
+                    course_name, 
+                    lab,
+                    runtime_limit=runtime_limit, 
+                    public_testcases=public_testcases
+                )
             else:
                 raise NoPublicTestcasesError
     else:
@@ -128,13 +133,14 @@ def add_submissions(course_name, lab, submissions_file):
     course_grader.add_submissions(course_name, lab, submissions_file)
 
 
-def apply_moss(submissions_file, moss_parameters, course_name='cc451', lab='lab3'):
-    """
-    All the possibly returned modules will have a add_submissions function that will be invoked here
-    """
-    submissions_extraction.extract_submissions(MOSS_PATH, submissions_file)
+def apply_moss(course, lab, moss_parameters, submissions_file = None, clearSubs = False ):
+    moss_lab_path = moss.generate_moss_lab_path(MOSS_PATH, course, lab)
+    if clearSubs:
+        submissions_extraction.clean_directory(moss_lab_path)
+    if submissions_file:
+        submissions_extraction.extract_submissions(moss_lab_path, submissions_file, clean_before_extraction=False)
     moss_ = moss.Moss()
-    moss_.set_config(moss_parameters, MOSS_PATH)
+    moss_.set_config(moss_parameters, moss_lab_path)
     response = moss_.get_result()
     return response
 

@@ -1,6 +1,7 @@
 import glob 
 import subprocess
 from pathlib import Path
+import os
 
 class Moss:
     def __init__(self):
@@ -28,8 +29,9 @@ class Moss:
                 command.append(self.config[key])
 
         actual_files = []
-        files = glob.glob(str(self.files_path.resolve()) + '/**/*', recursive = True) 
-        actual_files.extend(files)
+        files = self.files_path.rglob('*')
+        files = [f for f in files if os.path.isfile(f)]
+        actual_files.extend(list(map(lambda file: os.path.relpath(file, self.files_path.resolve()), files)))
 
         command.extend(actual_files)
         print(" ".join(command))
@@ -38,7 +40,7 @@ class Moss:
     def get_result(self):
         result = {}
         command = self.get_command()
-        opt = subprocess.run(command, capture_output = True)
+        opt = subprocess.run(command, cwd=self.files_path.resolve(), capture_output = True)
         
         result['error_message'] = opt.stderr.decode("utf-8")
         if opt.stderr.decode("utf-8") == '':
@@ -50,3 +52,7 @@ class Moss:
         result['url'] = opt[len(opt) -2]
 
         return result
+
+
+def generate_moss_lab_path(MOSS_PATH, course, lab):
+    return Path(MOSS_PATH, course, lab).resolve()
