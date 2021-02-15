@@ -108,7 +108,12 @@ def run_grader(course_name, lab, student = False):
         else:
             public_testcases = get_public_testcases(course_name, lab)
             if public_testcases:
-                course_grader.run_grader(course_name, lab, public_testcases)
+                course_grader.run_grader(
+                    course_name, 
+                    lab,
+                    runtime_limit=runtime_limit, 
+                    public_testcases=public_testcases
+                )
             else:
                 raise NoPublicTestcasesError
     else:

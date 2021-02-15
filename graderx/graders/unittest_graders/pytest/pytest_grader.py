@@ -33,7 +33,7 @@ def get_course_year(course):
     return app_config.YEAR
 
 
-def run_grader(course, lab, runtime_limit):
+def run_grader(course, lab, student=False):
     """
     Runs the tests in the given lab's corresponding pytest test file 
     which is test_run_grader.py in each lab directory  
