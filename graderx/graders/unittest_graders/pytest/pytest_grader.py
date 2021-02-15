@@ -6,6 +6,12 @@ from .lib.submissions_extraction import extract_submissions, clean_directory
 import json
 import importlib.util
 
+from ...lib.helpers import GRADER_TYPES
+
+
+GRADER_TYPE = GRADER_TYPES.UNITTEST
+GRADER_VARIANT = "pytest"
+
 
 def get_course_root(course):
     return Path(__file__).joinpath(
@@ -50,14 +56,17 @@ def run_grader(course, lab, runtime_limit):
     course_path = get_course_root(course)
     lab_path = get_lab_path(course, lab)
     lab_path_str = str(lab_path)
+    student_tests_filter = ""
     # If "GRADERX_FJ" environment variable is set to "ENABLED"
     # run the tests with the firejail profile in the lab directory else run normally
+    if student:
+        student_tests_filter = "-m student"
     if ("GRADERX_FJ" in os.environ) and os.environ['GRADERX_FJ'] == "ENABLED":
         cmd = shlex.split(
-            f"firejail --profile={lab_path_str}/firejail.profile pytest -vv --tb=short --show-capture=no {lab_path_str}/test_run_grader.py")
+            f"firejail --profile={lab_path_str}/firejail.profile pytest {student_tests_filter} -vv --tb=short --show-capture=no {lab_path_str}/test_run_grader.py")
     else:
         cmd = shlex.split(
-            f"pytest -vv --tb=short --show-capture=no {lab_path_str}/test_run_grader.py")
+            f"pytest {student_tests_filter} -vv --tb=short --show-capture=no {lab_path_str}/test_run_grader.py")
     file_name = "output.txt"
     with open(file_name, "w+") as f:
         subprocess.run(cmd, stdout=f)
@@ -157,3 +166,8 @@ def get_not_fullmark_submissions(course, lab):
                 not_fullmark_submissions.add(
                     '.'.join(submission_name.split('.')[0:-1]))
     return list(not_fullmark_submissions)
+
+def get_lab_guide_content(course, lab):
+    lab_guide_path = get_lab_path(course, lab).joinpath('lab_guide.md')
+    lab_guide = open(lab_guide_path)
+    return lab_guide.read()

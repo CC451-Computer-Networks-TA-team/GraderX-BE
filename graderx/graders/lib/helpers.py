@@ -1,5 +1,11 @@
 from zipfile import ZipFile
 from pathlib import Path
+from enum import Enum
+
+
+class GRADER_TYPES(Enum):
+    UNITTEST = "unittest"
+    STDOUT = "stdout"
 
 
 def create_zip_file(results_files):
