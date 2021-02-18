@@ -326,7 +326,7 @@ def get_lab_guide_content(course, lab):
         raise LabHasNoGuideError
 
 
-def edit_lab(course_id, lab_data):
+def edit_lab(course_id, lab_data, lab_guide = None):
     courses_config = get_courses_config_if_course_exists(course_id)
     # Validate lab_data
     if LAB_NAME in lab_data and lab_data[LAB_NAME] not in map(lambda lab: lab[LAB_NAME], courses_config[course_id][COURSE_LABS]):
@@ -337,6 +337,11 @@ def edit_lab(course_id, lab_data):
     if lab_data[LAB_TEST_CASES]:
         stdout_common.create_test_cases(
             course_id, lab_data[LAB_NAME], lab_data[LAB_TEST_CASES])
+    if lab_guide:
+        stdout_common.create_lab_guide(course_id, lab_data[LAB_NAME], lab_guide)
+    else:
+        # Using pop to avoid exception if 'lab_guide' is not in lab_data
+        lab_data.pop('lab_guide', None)
     del lab_data[LAB_TEST_CASES]
     courses_config[course_id][COURSE_LABS] = list(filter(
         lambda lab: lab[LAB_NAME] != lab_data[LAB_NAME], courses_config[course_id][COURSE_LABS]))
