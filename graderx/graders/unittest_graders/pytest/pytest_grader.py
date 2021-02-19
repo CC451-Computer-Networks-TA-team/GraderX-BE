@@ -7,10 +7,13 @@ import json
 import importlib.util
 
 from ...lib.helpers import GRADER_TYPES
+from ...lib.helpers import GRADER_VARIANTS
+from ...lib.helpers import GRADER_LANGUAGES 
 
 
-GRADER_TYPE = GRADER_TYPES.UNITTEST
-GRADER_VARIANT = "pytest"
+GRADER_TYPE = GRADER_TYPES.UNITTEST.value
+GRADER_VARIANT = GRADER_VARIANTS.PYTEST.value
+GRADER_LANGUAGE = GRADER_LANGUAGES.PYTHON.value
 
 
 def get_course_root(course):

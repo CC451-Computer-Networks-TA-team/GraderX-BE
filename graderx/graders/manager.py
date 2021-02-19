@@ -10,6 +10,7 @@ from .stdout_graders.stdout_common import stdout_common
 from .app_config import ( COURSES_DATA_PATH, MOSS_PATH, COURSE_NAME,
     COURSE_TYPE, COURSE_VARIANT, COURSE_LABS, LAB_NAME, 
     DISABLE_INTERNET, LAB_RUNTIME_LIMIT, LAB_TEST_CASES, PUBLIC_TEST_CASES )
+from .moss.comments_remover import CommentsRemover
 
 
 
@@ -139,10 +140,15 @@ def apply_moss(course, lab, moss_parameters, submissions_file = None, clearSubs 
         submissions_extraction.clean_directory(moss_lab_path)
     if submissions_file:
         submissions_extraction.extract_submissions(moss_lab_path, submissions_file, clean_before_extraction=False)
-    moss_ = moss.Moss()
+    language = get_course_language(course)
+    moss_ = moss.Moss(language)
     moss_.set_config(moss_parameters, moss_lab_path)
     response = moss_.get_result()
     return response
+
+def get_course_language(course):
+    course_grader = select_course_grader(course)
+    return course_grader.GRADER_LANGUAGE
 
 
 def save_single_submission(course_name, lab, file_in_memory, filename):

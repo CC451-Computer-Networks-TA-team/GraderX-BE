@@ -7,6 +7,14 @@ class GRADER_TYPES(Enum):
     UNITTEST = "unittest"
     STDOUT = "stdout"
 
+class GRADER_VARIANTS(Enum):
+    C = "c"
+    PYTEST = "pytest"
+
+class GRADER_LANGUAGES(Enum):
+    C = "c"
+    PYTHON = "python"
+
 
 def create_zip_file(results_files):
     compressed_file_path = Path(__file__).parent.joinpath(

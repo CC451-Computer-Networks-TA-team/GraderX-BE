@@ -2,13 +2,23 @@ import glob
 import subprocess
 from pathlib import Path
 import os
+from .comments_remover import CommentsRemover
+
+
+EXTENSIONS = {
+    'c': 'c',
+    'python': 'py'
+}
 
 class Moss:
-    def __init__(self):
+    def __init__(self, language):
+        self.extension = EXTENSIONS[language]
+        self.language = language
         self.config = {}
         self.config['m'] = "10"
-        self.config['l'] = "c"
+        self.config['l'] = language
         self.config['n'] = "250"
+        
     
     def set_config(self, settings, files_path):
         for key in settings:
@@ -21,6 +31,7 @@ class Moss:
     def get_config(self):
         return self.config
 
+
     def get_command(self):
         command = ['perl', str(Path(__file__).parent.joinpath('moss.pl'))]
         for key in self.config:
@@ -29,8 +40,8 @@ class Moss:
                 command.append(self.config[key])
 
         actual_files = []
-        files = self.files_path.rglob('*')
-        files = [f for f in files if os.path.isfile(f)]
+        files = list(self.files_path.rglob(f"*.{self.extension}"))
+        CommentsRemover.remove_comments_and_override(files, self.language)
         actual_files.extend(list(map(lambda file: os.path.relpath(file, self.files_path.resolve()), files)))
 
         command.extend(actual_files)

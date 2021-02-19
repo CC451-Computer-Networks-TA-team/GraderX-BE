@@ -10,12 +10,16 @@ from .lib import test_cases_parser as tc_parser
 from .lib.submissions_extraction import extract_submissions, clean_directory
 import json
 from ...lib.helpers import GRADER_TYPES
+from ...lib.helpers import GRADER_VARIANTS
+from ...lib.helpers import GRADER_LANGUAGES
 
 
 
 
-GRADER_TYPE = GRADER_TYPES.STDOUT
-GRADER_VARIANT = "c"
+GRADER_TYPE = GRADER_TYPES.STDOUT.value
+GRADER_VARIANT = GRADER_VARIANTS.C.value
+GRADER_LANGUAGE = GRADER_LANGUAGES.C.value
+
 
 def get_lab_path(course, lab):
     return Path(__file__).joinpath(
