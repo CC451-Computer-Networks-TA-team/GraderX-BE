@@ -123,7 +123,7 @@ def add_lab(course_name):
 def edit_lab(course_name, lab_id):
     try:
         lab_data = request.form.to_dict()
-        manager.edit_lab(course_name, lab_data)
+        manager.edit_lab(course_name, lab_data, request.files.get('lab_guide'))
         return jsonify({"message": "SUCCESS"}), 200
     except manager.CourseNotFoundError:
         return jsonify({"message": "Course Not Found"}), 404
@@ -223,7 +223,7 @@ def add_submissions():
                 "message": UPLOAD_STATUS.UNSUPPORTED_FILE.value
             }), 400
     elif method == "file-moss":
-        if "useExisting" in request.args:
+        if request.args.get('useExisting') == 'true':
             try:
                 res = manager.apply_moss(course_name, lab_name, request.form)
                 return jsonify(res), 200
@@ -245,9 +245,10 @@ def add_submissions():
             }), 400
         if allowed_file(submissions_file.filename):
             # TODO: secure filename
+            clearSubs = request.args.get('clearSubs') == 'true'
             try:
                 res = manager.apply_moss(
-                    course_name, lab_name, request.form, submissions_file=submissions_file, clearSubs='clearSubs' in request.args)
+                    course_name, lab_name, request.form, submissions_file=submissions_file, clearSubs=clearSubs)
                 return jsonify(res), 200
             except:
                 return jsonify({

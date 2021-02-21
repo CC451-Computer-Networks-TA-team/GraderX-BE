@@ -10,6 +10,7 @@ from .stdout_graders.stdout_common import stdout_common
 from .app_config import ( COURSES_DATA_PATH, MOSS_PATH, COURSE_NAME,
     COURSE_TYPE, COURSE_VARIANT, COURSE_LABS, LAB_NAME, 
     DISABLE_INTERNET, LAB_RUNTIME_LIMIT, LAB_TEST_CASES, PUBLIC_TEST_CASES )
+from .moss.comments_remover import CommentsRemover
 
 
 
@@ -139,10 +140,15 @@ def apply_moss(course, lab, moss_parameters, submissions_file = None, clearSubs 
         submissions_extraction.clean_directory(moss_lab_path)
     if submissions_file:
         submissions_extraction.extract_submissions(moss_lab_path, submissions_file, clean_before_extraction=False)
-    moss_ = moss.Moss()
+    language = get_course_language(course)
+    moss_ = moss.Moss(language)
     moss_.set_config(moss_parameters, moss_lab_path)
     response = moss_.get_result()
     return response
+
+def get_course_language(course):
+    course_grader = select_course_grader(course)
+    return course_grader.GRADER_LANGUAGE
 
 
 def save_single_submission(course_name, lab, file_in_memory, filename):
@@ -326,7 +332,7 @@ def get_lab_guide_content(course, lab):
         raise LabHasNoGuideError
 
 
-def edit_lab(course_id, lab_data):
+def edit_lab(course_id, lab_data, lab_guide = None):
     courses_config = get_courses_config_if_course_exists(course_id)
     # Validate lab_data
     if LAB_NAME in lab_data and lab_data[LAB_NAME] not in map(lambda lab: lab[LAB_NAME], courses_config[course_id][COURSE_LABS]):
@@ -337,6 +343,12 @@ def edit_lab(course_id, lab_data):
     if lab_data[LAB_TEST_CASES]:
         stdout_common.create_test_cases(
             course_id, lab_data[LAB_NAME], lab_data[LAB_TEST_CASES])
+        lab_data[PUBLIC_TEST_CASES] = list(map(lambda tc: tc['id'], filter(lambda tc: tc['public'], lab_data[LAB_TEST_CASES])))
+    if lab_guide:
+        stdout_common.create_lab_guide(course_id, lab_data[LAB_NAME], lab_guide)
+    else:
+        # Using pop to avoid exception if 'lab_guide' is not in lab_data
+        lab_data.pop('lab_guide', None)
     del lab_data[LAB_TEST_CASES]
     courses_config[course_id][COURSE_LABS] = list(filter(
         lambda lab: lab[LAB_NAME] != lab_data[LAB_NAME], courses_config[course_id][COURSE_LABS]))
