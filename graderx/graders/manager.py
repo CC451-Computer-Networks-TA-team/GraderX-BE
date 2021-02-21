@@ -343,6 +343,7 @@ def edit_lab(course_id, lab_data, lab_guide = None):
     if lab_data[LAB_TEST_CASES]:
         stdout_common.create_test_cases(
             course_id, lab_data[LAB_NAME], lab_data[LAB_TEST_CASES])
+        lab_data[PUBLIC_TEST_CASES] = list(map(lambda tc: tc['id'], filter(lambda tc: tc['public'], lab_data[LAB_TEST_CASES])))
     if lab_guide:
         stdout_common.create_lab_guide(course_id, lab_data[LAB_NAME], lab_guide)
     else:
